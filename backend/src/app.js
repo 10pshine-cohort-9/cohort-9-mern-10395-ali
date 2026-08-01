@@ -12,21 +12,18 @@ const app = express();
 
 app.use(pinoHttp({logger}));
 
-//Middleware
 app.use(cors());
 app.use(express.json());
 
-//Testing error handling
 app.get('/test-error', (req, res, next) => {
     next(new AppError('This is a test error', 400));
 });
 
-//Route Health Check
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'UP', message: 'server is healthy' });
 });
 
-app.all('*', (req, res, next) => {
+app.all('/{*path}', (req, res, next) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
 });
 
