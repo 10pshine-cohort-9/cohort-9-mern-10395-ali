@@ -4,7 +4,7 @@ const logger = require('./logger');
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: {
-        rejectUnauthorized: false
+        rejectUnauthorized: true
     }
 });
 
@@ -13,9 +13,9 @@ const connectDB = async () => {
         const client = await pool.connect();
         logger.info('PostgreSQL Connected Sucessfully to SupaBase');
         client.release();
-    }catch (error) {
-        logger.error('Database connection failed', error.message);
-        process.exit(1);
+    }catch (err) {
+        logger.error({err}, 'Database connection failed');
+        throw err;
     }
 };
 

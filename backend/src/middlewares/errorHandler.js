@@ -1,7 +1,16 @@
-const { stack } = require('../app');
 const logger = require ('../config/logger');
 
+/**
+ * @param {any} err
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ * @param {import('express').NextFunction} next
+ */
 const globalErrorHandler = (err, req, res, next) => {
+    if (res.headersSent) {
+        return next(err);
+    }
+
     err.statusCode = err.statusCode || 500;
     err.status = err.status || 'error';
 
