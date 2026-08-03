@@ -1,0 +1,16 @@
+const pino = require('pino');
+
+const transport = pino.transport({
+    target: 'pino-pretty',
+    options: {
+        colorize: true,
+        translateTime: 'SYS:standard',
+        ignore: 'pid,hostname',
+    },
+});
+
+const logger = pino (
+    process.env.NODE_ENV === 'production' ? {} : transport
+);
+
+module.exports = logger;
