@@ -11,11 +11,15 @@ module.exports = catchAsync(async (req, res, next) => {
 
   if (!token) return next(new AppError('Please log in', 401));
 
-  const decoded = tokenService.verify(token);
-  const user = await User.findById(decoded.id);
-  
-  if (!user) return next(new AppError('User no longer exists', 401));
+  try {
+    const decoded = tokenService.verify(token);
+    const user = await User.findById(decoded.id);
 
-  req.user = user;
-  next();
+    if (!user) return next(new AppError('User no longer exists', 401));
+
+    req.user = user;
+    next();
+  } catch (err) {
+    return next(new AppError('Invalid or expired token', 401));
+  }
 });
