@@ -10,9 +10,9 @@ if (!process.env.DATABASE_URL) {
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   connectionTimeoutMillis: 5000,
-  ssl: process.env.NODE_ENV === 'production' 
-    ? { rejectUnauthorized: true } 
-    : { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: process.env.DB_SSL_STRICT !== 'false'
+  }
 });
 
 pool.on('error', (err) => {
@@ -22,7 +22,7 @@ pool.on('error', (err) => {
 const connectDB = async () => {
   try {
     const client = await pool.connect();
-    logger.info('🐘 PostgreSQL Connected Successfully');
+    logger.info('PostgreSQL Connected Successfully');
     client.release();
   } catch (err) {
     logger.error({ err }, 'Database connection failed');
