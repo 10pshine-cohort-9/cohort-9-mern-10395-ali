@@ -5,6 +5,7 @@ const pinoHttp = require('pino-http');
 const logger = require('./config/logger');
 const globalErrorHandler = require('./middlewares/errorHandler');
 const AppError = require('./utils/AppError');
+const routes = require('./routes');
 
 dotenv.config();
 
@@ -14,6 +15,7 @@ app.use(pinoHttp({logger}));
 
 app.use(cors());
 app.use(express.json());
+app.use('/api', routes);
 
 app.get('/test-error', (req, res, next) => {
     next(new AppError('This is a test error', 400));
