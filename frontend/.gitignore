@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.development
+.env.test
+.env.production
+.DS_Store
+Thumbs.db
+coverage
+.vscode
