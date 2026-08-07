@@ -7,6 +7,7 @@ const Dashboard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const menuButtonRef = useRef(null);
+  const closeButtonRef = useRef(null);
 
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 1023px)');
@@ -18,8 +19,18 @@ const Dashboard = () => {
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
-    if (menuButtonRef.current) menuButtonRef.current.focus();
   };
+
+  useEffect(() => {
+    if (isSidebarOpen) {
+      if (closeButtonRef.current) closeButtonRef.current.focus();
+    } else {
+      const timeout = setTimeout(() => {
+        if (menuButtonRef.current) menuButtonRef.current.focus();
+      }, 0);
+      return () => clearTimeout(timeout);
+    }
+  }, [isSidebarOpen]);
 
   useEffect(() => {
     if (!isSidebarOpen) return;
@@ -52,6 +63,7 @@ const Dashboard = () => {
             <span className="text-xl font-bold tracking-tight">Notes Space</span>
           </div>
           <button 
+            ref={closeButtonRef}
             className="lg:hidden" 
             onClick={closeSidebar}
             aria-label="Close sidebar"
