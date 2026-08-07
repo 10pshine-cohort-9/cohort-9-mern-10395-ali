@@ -4,6 +4,22 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import Dashboard from './Dashboard';
 
+beforeAll(() => {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+});
+
 test('renders dashboard layout elements', () => {
   render(
     <AuthProvider>
@@ -17,9 +33,11 @@ test('renders dashboard layout elements', () => {
   const searchInput = screen.getByRole('textbox', { name: /Search through notes/i });
   const logoText = screen.getByText(/Notes Space/i);
   const logoutButton = screen.getByRole('button', { name: /Log Out/i });
+  const menuButton = screen.getByRole('button', { name: /Open sidebar/i });
   
   expect(overviewHeading).toBeInTheDocument();
   expect(searchInput).toBeInTheDocument();
   expect(logoText).toBeInTheDocument();
   expect(logoutButton).toBeInTheDocument();
+  expect(menuButton).toBeInTheDocument();
 });

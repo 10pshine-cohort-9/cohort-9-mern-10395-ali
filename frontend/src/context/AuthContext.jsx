@@ -9,34 +9,45 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      try {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
         const data = JSON.parse(storedUser);
         if (data && data.token && data.user) {
           api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
           setUser(data.user);
-          logger.info({ userId: data.user.id }, 'Session restored');
+          logger.info('Session restored from storage');
         }
-      } catch (err) {
-        localStorage.removeItem('user');
-        logger.error({ err }, 'Auth restoration failed');
       }
+    } catch (err) {
+      try {
+        localStorage.removeItem('user');
+      } catch (storageErr) {}
+      logger.error({ err }, 'Auth restoration failed');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const loginUser = (data) => {
-    const session = { user: data.user, token: data.token };
-    localStorage.setItem('user', JSON.stringify(session));
+    try {
+      const session = { user: data.user, token: data.token };
+      localStorage.setItem('user', JSON.stringify(session));
+    } catch (err) {
+      logger.error({ err }, 'Failed to persist login session');
+    }
     api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
     setUser(data.user);
-    logger.info({ userId: data.user.id }, 'Login session saved');
+    logger.info('Login session active');
   };
 
   const logout = () => {
+    try {
+      localStorage.removeItem('user');
+    } catch (err) {
+      logger.error({ err }, 'Failed to remove session from storage');
+    }
     delete api.defaults.headers.common['Authorization'];
-    localStorage.removeItem('user');
     setUser(null);
     logger.info('Session cleared');
   };

@@ -1,29 +1,42 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { LayoutDashboard, FileText, Bell, Search, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const menuButtonRef = useRef(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023px)');
+    const onChange = () => setIsMobile(mql.matches);
+    mql.addEventListener('change', onChange);
+    setIsMobile(mql.matches);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  const closeSidebar = () => {
+    setIsSidebarOpen(false);
+    if (menuButtonRef.current) menuButtonRef.current.focus();
+  };
 
   useEffect(() => {
     if (!isSidebarOpen) return;
 
     const handleEsc = (e) => {
-      if (e.key === 'Escape') setIsSidebarOpen(false);
+      if (e.key === 'Escape') closeSidebar();
     };
 
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isSidebarOpen]);
 
-  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
-
   return (
     <div className="flex min-h-screen bg-surface">
       <div 
         className={`fixed inset-0 z-40 bg-sidebar/50 transition-opacity lg:hidden ${isSidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`} 
-        onClick={() => setIsSidebarOpen(false)}
+        onClick={closeSidebar}
       />
 
       <aside 
@@ -40,7 +53,7 @@ const Dashboard = () => {
           </div>
           <button 
             className="lg:hidden" 
-            onClick={() => setIsSidebarOpen(false)}
+            onClick={closeSidebar}
             aria-label="Close sidebar"
           >
             <X size={24} />
@@ -95,6 +108,7 @@ const Dashboard = () => {
         <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <button 
+              ref={menuButtonRef}
               className="rounded-lg bg-white p-2 text-sidebar shadow-sm lg:hidden" 
               onClick={() => setIsSidebarOpen(true)}
               aria-label="Open sidebar"
