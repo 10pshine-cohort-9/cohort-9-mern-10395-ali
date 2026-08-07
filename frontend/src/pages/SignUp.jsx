@@ -52,6 +52,7 @@ const SignUp = () => {
           <input
             name="name"
             type="text"
+            aria-label="Full Name"
             placeholder="Full Name"
             required
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
@@ -60,6 +61,7 @@ const SignUp = () => {
           <input
             name="email"
             type="email"
+            aria-label="Email Address"
             placeholder="Email Address"
             required
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
@@ -68,6 +70,7 @@ const SignUp = () => {
           <input
             name="password"
             type="password"
+            aria-label="Create Password"
             placeholder="Create Password"
             required
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
@@ -76,6 +79,7 @@ const SignUp = () => {
           <input
             name="confirmPassword"
             type="password"
+            aria-label="Confirm Password"
             placeholder="Confirm Password"
             required
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"

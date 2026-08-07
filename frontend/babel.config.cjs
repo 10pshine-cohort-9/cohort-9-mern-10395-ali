@@ -8,7 +8,9 @@ module.exports = {
       return {
         visitor: {
           MetaProperty(path) {
-            path.replaceWithSourceString('process');
+            if (path.node.meta.name === 'import' && path.node.property.name === 'meta') {
+              path.replaceWithSourceString('process');
+            }
           },
         },
       };

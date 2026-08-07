@@ -14,8 +14,10 @@ test('renders login elements', () => {
   );
   
   const heading = screen.getByRole('heading', { name: /Sign In/i });
-  const emailInput = screen.getByPlaceholderText(/Email Address/i);
+  const emailInput = screen.getByRole('textbox', { name: /Email Address/i });
+  const passwordInput = screen.getByLabelText(/Password/i);
   
   expect(heading).toBeInTheDocument();
   expect(emailInput).toBeInTheDocument();
+  expect(passwordInput).toBeInTheDocument();
 });

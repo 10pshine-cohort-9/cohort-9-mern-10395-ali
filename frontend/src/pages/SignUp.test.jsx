@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import SignUp from './SignUp';
 
-test('renders signup heading', () => {
+test('renders signup heading and all input fields', () => {
   render(
     <AuthProvider>
       <BrowserRouter>
@@ -12,6 +12,16 @@ test('renders signup heading', () => {
       </BrowserRouter>
     </AuthProvider>
   );
-  const heading = screen.getByText(/Create Account/i);
+  
+  const heading = screen.getByRole('heading', { name: /Create Account/i });
+  const nameInput = screen.getByRole('textbox', { name: /Full Name/i });
+  const emailInput = screen.getByRole('textbox', { name: /Email Address/i });
+  const passwordInput = screen.getByLabelText(/Create Password/i);
+  const confirmInput = screen.getByLabelText(/Confirm Password/i);
+
   expect(heading).toBeInTheDocument();
+  expect(nameInput).toBeInTheDocument();
+  expect(emailInput).toBeInTheDocument();
+  expect(passwordInput).toBeInTheDocument();
+  expect(confirmInput).toBeInTheDocument();
 });

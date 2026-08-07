@@ -8,23 +8,29 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
-      logger.info({ userId: parsedUser.id }, 'Session restored from localStorage');
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        logger.info({ userId: parsedUser?.id }, 'Session restored');
+      }
+    } catch (err) {
+      localStorage.removeItem('user');
+      logger.error({ err }, 'Invalid session cleared');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
   const loginUser = (userData) => {
     setUser(userData);
     localStorage.setItem('user', JSON.stringify(userData));
-    logger.info({ userId: userData.id }, 'User logged in successfully');
+    logger.info({ userId: userData.id }, 'Login success');
   };
 
   const logout = () => {
-    logger.info({ userId: user?.id }, 'User logged out');
+    logger.info({ userId: user?.id }, 'Logout');
     setUser(null);
     localStorage.removeItem('user');
   };

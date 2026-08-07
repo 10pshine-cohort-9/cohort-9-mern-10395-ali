@@ -45,6 +45,7 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="email"
+            aria-label="Email Address"
             placeholder="Email Address"
             required
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent focus:ring-1 focus:ring-accent"
@@ -52,6 +53,7 @@ const Login = () => {
           />
           <input
             type="password"
+            aria-label="Password"
             placeholder="Password"
             required
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent focus:ring-1 focus:ring-accent"
