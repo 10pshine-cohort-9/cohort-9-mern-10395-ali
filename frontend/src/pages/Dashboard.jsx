@@ -1,10 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, FileText, Bell, Search, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isSidebarOpen) return;
+
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setIsSidebarOpen(false);
+    };
+
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isSidebarOpen]);
+
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 1024;
 
   return (
     <div className="flex min-h-screen bg-surface">
@@ -15,6 +28,7 @@ const Dashboard = () => {
 
       <aside 
         id="main-sidebar"
+        inert={isMobile && !isSidebarOpen ? "true" : undefined}
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col transform bg-sidebar p-6 text-white transition-transform duration-300 lg:static lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="mb-10 flex items-center justify-between">
@@ -74,7 +88,10 @@ const Dashboard = () => {
         </button>
       </aside>
 
-      <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
+      <main 
+        inert={isMobile && isSidebarOpen ? "true" : undefined}
+        className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10"
+      >
         <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
             <button 

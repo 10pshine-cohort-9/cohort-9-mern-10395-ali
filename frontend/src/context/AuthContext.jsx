@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import logger from '../api/logger';
+import api from '../api/authApi';
 
 export const AuthContext = createContext();
 
@@ -11,29 +12,33 @@ export const AuthProvider = ({ children }) => {
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       try {
-        const parsedUser = JSON.parse(storedUser);
-        if (parsedUser && parsedUser.id) {
-          setUser(parsedUser);
-          logger.info({ userId: parsedUser.id }, 'Session restored');
+        const data = JSON.parse(storedUser);
+        if (data && data.token && data.user) {
+          api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+          setUser(data.user);
+          logger.info({ userId: data.user.id }, 'Session restored');
         }
       } catch (err) {
         localStorage.removeItem('user');
-        logger.error({ err }, 'Session restoration failed');
+        logger.error({ err }, 'Auth restoration failed');
       }
     }
     setLoading(false);
   }, []);
 
-  const loginUser = (userData) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
-    logger.info({ userId: userData.id }, 'Login success');
+  const loginUser = (data) => {
+    const session = { user: data.user, token: data.token };
+    localStorage.setItem('user', JSON.stringify(session));
+    api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+    setUser(data.user);
+    logger.info({ userId: data.user.id }, 'Login session saved');
   };
 
   const logout = () => {
-    logger.info({ userId: user?.id }, 'Logout');
-    setUser(null);
+    delete api.defaults.headers.common['Authorization'];
     localStorage.removeItem('user');
+    setUser(null);
+    logger.info('Session cleared');
   };
 
   return (
