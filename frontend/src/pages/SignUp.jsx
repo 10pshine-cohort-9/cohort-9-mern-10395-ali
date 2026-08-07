@@ -49,42 +49,58 @@ const SignUp = () => {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            name="name"
-            type="text"
-            aria-label="Full Name"
-            placeholder="Full Name"
-            required
-            className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
-            onChange={handleChange}
-          />
-          <input
-            name="email"
-            type="email"
-            aria-label="Email Address"
-            placeholder="Email Address"
-            required
-            className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
-            onChange={handleChange}
-          />
-          <input
-            name="password"
-            type="password"
-            aria-label="Create Password"
-            placeholder="Create Password"
-            required
-            className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
-            onChange={handleChange}
-          />
-          <input
-            name="confirmPassword"
-            type="password"
-            aria-label="Confirm Password"
-            placeholder="Confirm Password"
-            required
-            className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
-            onChange={handleChange}
-          />
+          <div>
+            <label htmlFor="signup-name" className="sr-only">Full Name</label>
+            <input
+              id="signup-name"
+              name="name"
+              type="text"
+              aria-label="Full Name"
+              placeholder="Full Name"
+              required
+              className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label htmlFor="signup-email" className="sr-only">Email Address</label>
+            <input
+              id="signup-email"
+              name="email"
+              type="email"
+              aria-label="Email Address"
+              placeholder="Email Address"
+              required
+              className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label htmlFor="signup-password" className="sr-only">Create Password</label>
+            <input
+              id="signup-password"
+              name="password"
+              type="password"
+              aria-label="Create Password"
+              placeholder="Create Password"
+              required
+              className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
+              onChange={handleChange}
+            />
+          </div>
+          <div>
+            <label htmlFor="signup-confirm-password" className="sr-only">Confirm Password</label>
+            <input
+              id="signup-confirm-password"
+              name="confirmPassword"
+              type="password"
+              aria-label="Confirm Password"
+              placeholder="Confirm Password"
+              required
+              className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent"
+              onChange={handleChange}
+            />
+          </div>
           <button className="w-full rounded-xl bg-accent p-4 font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]">
             Get Started
           </button>

@@ -13,7 +13,10 @@ const Dashboard = () => {
         onClick={() => setIsSidebarOpen(false)}
       />
 
-      <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col transform bg-sidebar p-6 text-white transition-transform duration-300 lg:static lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside 
+        id="main-sidebar"
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col transform bg-sidebar p-6 text-white transition-transform duration-300 lg:static lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
         <div className="mb-10 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-white shadow-lg shadow-accent/20">
@@ -21,7 +24,11 @@ const Dashboard = () => {
             </div>
             <span className="text-xl font-bold tracking-tight">Notes Space</span>
           </div>
-          <button className="lg:hidden" onClick={() => setIsSidebarOpen(false)}>
+          <button 
+            className="lg:hidden" 
+            onClick={() => setIsSidebarOpen(false)}
+            aria-label="Close sidebar"
+          >
             <X size={24} />
           </button>
         </div>
@@ -35,22 +42,34 @@ const Dashboard = () => {
         </div>
 
         <nav className="space-y-2">
-          <div className="flex cursor-pointer items-center gap-3 rounded-xl bg-white/10 p-4 font-medium transition-all">
+          <button 
+            type="button"
+            className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white/10 p-4 font-medium transition-all"
+          >
             <LayoutDashboard size={20} /> <span>Dashboard</span>
-          </div>
-          <div className="flex cursor-pointer items-center gap-3 p-4 text-slate-400 transition-all hover:bg-white/5 hover:text-white">
+          </button>
+          <button 
+            type="button"
+            className="flex w-full cursor-pointer items-center gap-3 p-4 text-slate-400 transition-all hover:bg-white/5 hover:text-white"
+          >
             <FileText size={20} /> <span>All Notes</span>
-          </div>
-          <div className="group flex cursor-pointer items-center gap-3 p-4 text-slate-400 transition-all hover:bg-white/5 hover:text-white">
+          </button>
+          <button 
+            type="button"
+            className="group flex w-full cursor-pointer items-center gap-3 p-4 text-slate-400 transition-all hover:bg-white/5 hover:text-white"
+          >
             <Bell size={20} /> 
-            <span className="flex-1">Reminders</span>
+            <span className="flex-1 text-left">Reminders</span>
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white shadow-sm ring-2 ring-sidebar">
               5
             </span>
-          </div>
+          </button>
         </nav>
 
-        <button onClick={logout} className="mt-auto flex items-center gap-3 p-4 text-red-400 transition-all hover:bg-red-500/10 hover:text-red-300">
+        <button 
+          onClick={logout} 
+          className="mt-auto flex items-center gap-3 p-4 text-red-400 transition-all hover:bg-red-500/10 hover:text-red-300"
+        >
           <LogOut size={20} /> <span>Log Out</span>
         </button>
       </aside>
@@ -58,7 +77,13 @@ const Dashboard = () => {
       <main className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10">
         <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-4">
-            <button className="rounded-lg bg-white p-2 text-sidebar shadow-sm lg:hidden" onClick={() => setIsSidebarOpen(true)}>
+            <button 
+              className="rounded-lg bg-white p-2 text-sidebar shadow-sm lg:hidden" 
+              onClick={() => setIsSidebarOpen(true)}
+              aria-label="Open sidebar"
+              aria-expanded={isSidebarOpen}
+              aria-controls="main-sidebar"
+            >
               <Menu size={24} />
             </button>
             <div>
@@ -71,6 +96,7 @@ const Dashboard = () => {
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
             <input 
               type="text" 
+              aria-label="Search through notes"
               placeholder="Search through notes..." 
               className="w-full rounded-2xl border-none bg-white py-4 pl-12 pr-4 outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-accent card-shadow"
             />
@@ -107,7 +133,7 @@ const Dashboard = () => {
           <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-100">
             <p className="text-sm font-bold text-slate-500">Tag Capacity</p>
             <div className="relative mt-3 flex h-16 w-16 items-center justify-center">
-               <svg className="h-full w-full" viewBox="0 0 36 36">
+               <svg className="h-full w-full" viewBox="0 0 36 36" aria-hidden="true">
                  <path className="text-slate-100" strokeDasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
                  <path className="text-accent" strokeDasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                </svg>

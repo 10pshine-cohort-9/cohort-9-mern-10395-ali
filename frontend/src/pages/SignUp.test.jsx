@@ -14,8 +14,8 @@ test('renders signup heading and all input fields', () => {
   );
   
   const heading = screen.getByRole('heading', { name: /Create Account/i });
-  const nameInput = screen.getByRole('textbox', { name: /Full Name/i });
-  const emailInput = screen.getByRole('textbox', { name: /Email Address/i });
+  const nameInput = screen.getByLabelText(/Full Name/i);
+  const emailInput = screen.getByLabelText(/Email Address/i);
   const passwordInput = screen.getByLabelText(/Create Password/i);
   const confirmInput = screen.getByLabelText(/Confirm Password/i);
 

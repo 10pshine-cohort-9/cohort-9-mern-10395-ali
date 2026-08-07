@@ -14,7 +14,7 @@ test('renders dashboard layout elements', () => {
   );
   
   const overviewHeading = screen.getByRole('heading', { name: /Overview/i, level: 1 });
-  const searchInput = screen.getByPlaceholderText(/Search through notes.../i);
+  const searchInput = screen.getByRole('textbox', { name: /Search through notes/i });
   const logoText = screen.getByText(/Notes Space/i);
   
   expect(overviewHeading).toBeInTheDocument();
