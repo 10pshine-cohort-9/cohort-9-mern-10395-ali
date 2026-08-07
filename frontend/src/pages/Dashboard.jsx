@@ -31,7 +31,7 @@ const Dashboard = () => {
             {user?.name?.charAt(0)}
           </div>
           <p className="text-xs text-slate-400">Welcome Back,</p>
-          <p className="max-w-[200px] truncate font-bold">{user?.name}</p>
+          <p className="max-w-50 truncate font-bold">{user?.name}</p>
         </div>
 
         <nav className="space-y-2">
@@ -125,7 +125,7 @@ const Dashboard = () => {
               </button>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[500px]">
+              <table className="w-full min-w-125">
                 <thead>
                   <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
                     <th className="pb-4">Note Title</th>
