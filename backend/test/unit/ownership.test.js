@@ -1,36 +1,50 @@
 const { expect } = require('chai');
+const Note = require('../../src/models/Note');
+const ownershipMiddleware = require('../../src/middlewares/ownershipMiddleware');
 const AppError = require('../../src/utils/AppError');
 
-describe('Ownership Logic Verification', () => {
-  const validateOwnership = (note, userId) => {
-    if (!note) throw new AppError('Note not found', 404);
-    if (note.user_id !== userId) throw new AppError('Access denied', 403);
-    return true;
-  };
+describe('Ownership Middleware Verification', () => {
+  let req, res, next, capturedError;
+  const originalFindById = Note.findById;
 
-  it('should allow access when the requester is the note owner', () => {
-    const mockNote = { user_id: 'user-123' };
-    const result = validateOwnership(mockNote, 'user-123');
-    expect(result).to.be.true;
+  afterEach(() => {
+    Note.findById = originalFindById;
   });
 
-  it('should throw a 403 Forbidden error when identities mismatch', () => {
-    const mockNote = { user_id: 'real-owner-id' };
-    try {
-      validateOwnership(mockNote, 'unauthorized-user-id');
-    } catch (err) {
-      expect(err).to.be.instanceOf(AppError);
-      expect(err.statusCode).to.equal(403);
-      expect(err.message).to.equal('Access denied');
-    }
+  beforeEach(() => {
+    capturedError = undefined;
+    req = { 
+      params: { id: 'note-123' }, 
+      user: { id: 'active-user' } 
+    };
+    res = {};
+    next = (err) => { capturedError = err; };
   });
 
-  it('should throw a 404 Not Found error when the note object is null', () => {
-    try {
-      validateOwnership(null, 'active-user-id');
-    } catch (err) {
-      expect(err.statusCode).to.equal(404);
-      expect(err.message).to.equal('Note not found');
-    }
+  it('should call next with no arguments when user is the owner', async () => {
+    Note.findById = async () => ({ id: 'note-123', user_id: 'active-user' });
+    
+    await ownershipMiddleware(req, res, next);
+    expect(capturedError).to.be.undefined;
+  });
+
+  it('should call next with a 403 AppError when identities mismatch', async () => {
+    Note.findById = async () => ({ id: 'note-123', user_id: 'other-user' });
+    
+    await ownershipMiddleware(req, res, next);
+    
+    expect(capturedError).to.be.instanceOf(AppError);
+    expect(capturedError.statusCode).to.equal(403);
+    expect(capturedError.message).to.equal('Access denied');
+  });
+
+  it('should call next with a 404 AppError when note is not found', async () => {
+    Note.findById = async () => null;
+    
+    await ownershipMiddleware(req, res, next);
+    
+    expect(capturedError).to.be.instanceOf(AppError);
+    expect(capturedError.statusCode).to.equal(404);
+    expect(capturedError.message).to.equal('Note not found');
   });
 });
