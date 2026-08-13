@@ -5,18 +5,10 @@ import { AuthProvider } from '../context/AuthContext';
 import NoteEditor from './NoteEditor';
 
 jest.mock('react-quill-new', () => {
-  return function MockEditor({ value, onChange }) {
-    return (
-      <textarea
-        data-testid="mock-editor"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    );
-  };
+  return function MockEditor() { return <div data-testid="quill" />; };
 });
 
-test('renders editor header', () => {
+test('renders editor and verifies title input exists', () => {
   render(
     <AuthProvider>
       <BrowserRouter>
@@ -24,5 +16,10 @@ test('renders editor header', () => {
       </BrowserRouter>
     </AuthProvider>
   );
-  expect(screen.getByText(/Note Editor/i)).toBeInTheDocument();
+  
+  const titleInput = screen.getByPlaceholderText(/Note Title/i);
+  const saveButton = screen.getByRole('button', { name: /Save/i });
+  
+  expect(titleInput).toBeInTheDocument();
+  expect(saveButton).toBeInTheDocument();
 });

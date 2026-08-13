@@ -7,15 +7,17 @@ import NoteCard from '../components/NoteCard';
 import DeleteModal from '../components/DeleteModal';
 import Loader from '../components/Loader';
 import EmptyState from '../components/EmptyState';
+import Alert from '../components/Alert';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const { notes, loading, fetchNotes, removeNote } = useNotes();
+  const { notes, loading, error, fetchNotes, removeNote } = useNotes();
   const navigate = useNavigate();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   
   const menuButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -57,9 +59,17 @@ const Dashboard = () => {
   }, [isSidebarOpen]);
 
   const handleDeleteConfirm = async () => {
-    if (selectedNote) {
-      await removeNote(selectedNote.id);
-      setSelectedNote(null);
+    if (!selectedNote) return;
+    setDeleteError('');
+    try {
+      const success = await removeNote(selectedNote.id);
+      if (success) {
+        setSelectedNote(null);
+      } else {
+        setDeleteError('Could not delete note. Please try again.');
+      }
+    } catch (err) {
+      setDeleteError('An unexpected error occurred during deletion.');
     }
   };
 
@@ -220,6 +230,8 @@ const Dashboard = () => {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               {loading ? (
                 <div className="col-span-full"><Loader /></div>
+              ) : error ? (
+                <div className="col-span-full"><Alert message={error} type="error" /></div>
               ) : notes.length > 0 ? (
                 notes.map(note => (
                   <NoteCard key={note.id} note={note} onDelete={setSelectedNote} />
@@ -255,9 +267,14 @@ const Dashboard = () => {
       <DeleteModal 
         isOpen={!!selectedNote} 
         noteTitle={selectedNote?.title} 
-        onClose={() => setSelectedNote(null)} 
+        onClose={() => {
+          setSelectedNote(null);
+          setDeleteError('');
+        }} 
         onConfirm={handleDeleteConfirm} 
-      />
+      >
+        {deleteError && <Alert message={deleteError} type="error" />}
+      </DeleteModal>
     </div>
   );
 };

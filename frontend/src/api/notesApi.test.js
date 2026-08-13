@@ -1,6 +1,8 @@
 import * as notesApi from './notesApi';
 
-test('api functions are defined', () => {
-  expect(notesApi.getNotes).toBeDefined();
-  expect(notesApi.createNote).toBeDefined();
+test('notesApi exports expected crud functions', () => {
+  const functions = ['getNotes', 'createNote', 'updateNote', 'deleteNote'];
+  functions.forEach(fn => {
+    expect(typeof notesApi[fn]).toBe('function');
+  });
 });

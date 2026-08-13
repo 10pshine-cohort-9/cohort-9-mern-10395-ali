@@ -18,16 +18,27 @@ const NoteEditor = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    let active = true;
     if (id) {
       setLoading(true);
+      setError('');
       getNoteById(id)
         .then(({ data }) => {
-          setTitle(data.data.note.title);
-          setContent(data.data.note.content);
+          if (active) {
+            setTitle(data.data.note.title);
+            setContent(data.data.note.content);
+          }
         })
-        .catch(() => setError('Could not load note'))
-        .finally(() => setLoading(false));
+        .catch(() => {
+          if (active) setError('Could not load note');
+        })
+        .finally(() => {
+          if (active) setLoading(false);
+        });
     }
+    return () => {
+      active = false;
+    };
   }, [id]);
 
   const handleSave = async () => {
@@ -72,11 +83,11 @@ const NoteEditor = () => {
           <input
             type="text"
             placeholder="Note Title"
-            className="mb-6 w-full text-3xl font-bold outline-none placeholder:text-slate-200"
+            className="mb-6 w-full text-3xl font-bold outline-none placeholder:text-slate-200 focus-visible:ring-2 focus-visible:ring-accent/10 rounded-xl px-2 transition-all"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
-          <ReactQuill value={content} onChange={setContent} theme="snow" className="min-h-[400px]" />
+          <ReactQuill value={content} onChange={setContent} theme="snow" className="min-h-100" />
         </div>
       </div>
     </div>
