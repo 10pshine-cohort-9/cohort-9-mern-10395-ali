@@ -8,4 +8,7 @@ module.exports = {
     '^.+\\.(js|jsx)$': 'babel-jest',
     '^.+\\.svg$': 'jest-transformer-svg',
   },
+  transformIgnorePatterns: [
+    '/node_modules/(?!(react-quill-new|lodash-es|lucide-react)/)',
+  ],
 };
