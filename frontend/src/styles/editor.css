@@ -1,0 +1,17 @@
+.ql-container {
+  font-family: inherit !important;
+  font-size: 1rem !important;
+  border: none !important;
+}
+.ql-toolbar {
+  border: none !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  padding: 8px 0 !important;
+}
+.ql-editor {
+  padding: 20px 0 !important;
+}
+.ql-editor.ql-blank::before {
+  color: #e2e8f0 !important;
+  font-style: normal !important;
+}

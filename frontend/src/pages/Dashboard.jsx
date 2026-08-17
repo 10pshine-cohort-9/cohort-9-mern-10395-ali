@@ -1,13 +1,30 @@
 import { useState, useEffect, useRef } from 'react';
 import { LayoutDashboard, FileText, Bell, Search, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useNotes } from '../hooks/useNotes';
+import { useNavigate } from 'react-router-dom';
+import NoteCard from '../components/NoteCard';
+import DeleteModal from '../components/DeleteModal';
+import Loader from '../components/Loader';
+import EmptyState from '../components/EmptyState';
+import Alert from '../components/Alert';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const { notes, loading, error, fetchNotes, removeNote } = useNotes();
+  const navigate = useNavigate();
+  
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [selectedNote, setSelectedNote] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
+  
   const menuButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
+
+  useEffect(() => {
+    fetchNotes();
+  }, [fetchNotes]);
 
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 1023px)');
@@ -34,14 +51,27 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!isSidebarOpen) return;
-
     const handleEsc = (e) => {
       if (e.key === 'Escape') closeSidebar();
     };
-
     window.addEventListener('keydown', handleEsc);
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isSidebarOpen]);
+
+  const handleDeleteConfirm = async () => {
+    if (!selectedNote) return;
+    setDeleteError('');
+    try {
+      const success = await removeNote(selectedNote.id);
+      if (success) {
+        setSelectedNote(null);
+      } else {
+        setDeleteError('Could not delete note. Please try again.');
+      }
+    } catch (err) {
+      setDeleteError('An unexpected error occurred during deletion.');
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-surface">
@@ -154,16 +184,16 @@ const Dashboard = () => {
         <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-3xl bg-cardGreen p-8 shadow-sm transition-transform hover:scale-[1.02]">
             <p className="font-medium text-slate-600">Total Notes</p>
-            <h2 className="mt-2 text-4xl font-black text-sidebar">156</h2>
+            <h2 className="mt-2 text-4xl font-black text-sidebar">{notes.length}</h2>
             <div className="mt-4 h-1.5 w-full rounded-full bg-sidebar/5">
-              <div className="h-full w-2/3 rounded-full bg-green-500" />
+              <div className="h-full w-full rounded-full bg-green-500" />
             </div>
           </div>
           <div className="rounded-3xl bg-cardYellow p-8 shadow-sm transition-transform hover:scale-[1.02]">
             <p className="font-medium text-slate-600">Pinned</p>
-            <h2 className="mt-2 text-4xl font-black text-sidebar">24</h2>
+            <h2 className="mt-2 text-4xl font-black text-sidebar">0</h2>
             <div className="mt-4 h-1.5 w-full rounded-full bg-sidebar/5">
-              <div className="h-full w-1/4 rounded-full bg-yellow-500" />
+              <div className="h-full w-0 rounded-full bg-yellow-500" />
             </div>
           </div>
           <div className="group relative overflow-hidden rounded-3xl bg-cardPurple p-8 shadow-sm transition-all hover:bg-cardPurple/80">
@@ -189,40 +219,26 @@ const Dashboard = () => {
           <div className="col-span-1 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-10 xl:col-span-2">
             <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-xl font-bold text-sidebar">Recent Workspace</h3>
-              <button className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 active:scale-95">
+              <button 
+                onClick={() => navigate('/new')}
+                className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 active:scale-95"
+              >
                 <Plus size={18} /> Create New
               </button>
             </div>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-125">
-                <thead>
-                  <tr className="border-b border-slate-100 text-left text-xs font-bold uppercase tracking-wider text-slate-400">
-                    <th className="pb-4">Note Title</th>
-                    <th className="pb-4">Status</th>
-                    <th className="pb-4">Last Modified</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  <tr>
-                    <td className="py-6 text-sm font-bold text-sidebar">Backend API Architecture</td>
-                    <td className="py-6">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-blue-600" /> In Review
-                      </span>
-                    </td>
-                    <td className="py-6 text-sm text-slate-500">Aug 06, 2026</td>
-                  </tr>
-                  <tr>
-                    <td className="py-6 text-sm font-bold text-sidebar">Mobile UI Components</td>
-                    <td className="py-6">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-600">
-                        <span className="h-1.5 w-1.5 rounded-full bg-green-600" /> Completed
-                      </span>
-                    </td>
-                    <td className="py-6 text-sm text-slate-500">Aug 05, 2026</td>
-                  </tr>
-                </tbody>
-              </table>
+            
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {loading ? (
+                <div className="col-span-full"><Loader /></div>
+              ) : error ? (
+                <div className="col-span-full"><Alert message={error} type="error" /></div>
+              ) : notes.length > 0 ? (
+                notes.map(note => (
+                  <NoteCard key={note.id} note={note} onDelete={setSelectedNote} />
+                ))
+              ) : (
+                <div className="col-span-full"><EmptyState /></div>
+              )}
             </div>
           </div>
 
@@ -232,21 +248,33 @@ const Dashboard = () => {
                 <div className="flex items-center justify-between border-l-4 border-accent pl-4">
                   <div>
                     <p className="text-sm font-bold text-sidebar">Sync Completed</p>
-                    <p className="text-xs text-slate-400">2 minutes ago</p>
+                    <p className="text-xs text-slate-400">Just now</p>
                   </div>
                   <p className="text-xs font-black text-accent uppercase tracking-tighter">Success</p>
                 </div>
                 <div className="flex items-center justify-between border-l-4 border-slate-100 pl-4">
                   <div>
-                    <p className="text-sm font-bold text-sidebar">Note Shared</p>
+                    <p className="text-sm font-bold text-sidebar">System Ready</p>
                     <p className="text-xs text-slate-400">1 hour ago</p>
                   </div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-tighter">Pending</p>
+                  <p className="text-xs font-black text-slate-400 uppercase tracking-tighter">Online</p>
                 </div>
              </div>
           </div>
         </div>
       </main>
+
+      <DeleteModal 
+        isOpen={!!selectedNote} 
+        noteTitle={selectedNote?.title} 
+        onClose={() => {
+          setSelectedNote(null);
+          setDeleteError('');
+        }} 
+        onConfirm={handleDeleteConfirm} 
+      >
+        {deleteError && <Alert message={deleteError} type="error" />}
+      </DeleteModal>
     </div>
   );
 };

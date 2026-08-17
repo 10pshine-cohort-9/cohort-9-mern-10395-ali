@@ -2,7 +2,10 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
+import { useNotes } from '../hooks/useNotes';
 import Dashboard from './Dashboard';
+
+jest.mock('../hooks/useNotes');
 
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
@@ -21,6 +24,14 @@ beforeAll(() => {
 });
 
 test('renders dashboard layout elements', () => {
+  useNotes.mockReturnValue({
+    notes: [],
+    loading: false,
+    error: null,
+    fetchNotes: jest.fn(),
+    removeNote: jest.fn()
+  });
+
   render(
     <AuthProvider>
       <BrowserRouter>
@@ -42,4 +53,24 @@ test('renders dashboard layout elements', () => {
   expect(logoutButton).toBeInTheDocument();
   expect(openMenuButton).toBeInTheDocument();
   expect(closeMenuButton).toBeInTheDocument();
+});
+
+test('renders error alert when fetch fails', () => {
+  useNotes.mockReturnValue({
+    notes: [],
+    loading: false,
+    error: 'Failed to load notes',
+    fetchNotes: jest.fn(),
+    removeNote: jest.fn()
+  });
+
+  render(
+    <AuthProvider>
+      <BrowserRouter>
+        <Dashboard />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+  
+  expect(screen.getByRole('alert')).toHaveTextContent(/Failed to load notes/i);
 });
