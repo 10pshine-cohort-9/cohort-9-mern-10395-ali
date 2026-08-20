@@ -46,5 +46,5 @@ exports.removeNote = async (id, userId) => {
   if (!note || note.user_id !== userId) {
     throw new AppError('Note not found', 404);
   }
-  await Note.delete(id);
+  await Note.delete(id, userId);
 };

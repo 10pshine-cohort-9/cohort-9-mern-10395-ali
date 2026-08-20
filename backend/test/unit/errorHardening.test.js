@@ -1,8 +1,32 @@
 const { expect } = require('chai');
+const globalErrorHandler = require('../../src/middlewares/errorHandler');
 
-describe('Error Tracing Utility', () => {
-  it('should ensure request IDs are UUID format', () => {
-    const regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    expect('550e8400-e29b-41d4-a716-446655440000').to.match(regex);
+describe('Error Handler Security Enforcements', () => {
+  it('should return a 500 status and the correct requestId for non-operational errors', () => {
+    const mockError = new Error('Database Crash');
+    mockError.statusCode = 400;
+    mockError.isOperational = false;
+
+    const req = { 
+      id: 'dynamic-uuid-789', 
+      log: { error: () => {} } 
+    };
+    const res = {
+      status: function(code) {
+        this.statusCode = code;
+        return this;
+      },
+      json: function(data) {
+        this.body = data;
+        return this;
+      }
+    };
+
+    globalErrorHandler(mockError, req, res, () => {});
+    
+    expect(res.statusCode).to.equal(500);
+    expect(res.body.requestId).to.equal('dynamic-uuid-789');
+    expect(res.body.status).to.equal('error');
+    expect(res.body.message).to.equal('An internal error occurred');
   });
 });

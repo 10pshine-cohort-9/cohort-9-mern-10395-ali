@@ -3,7 +3,7 @@ const catchAsync = require('../utils/catchAsync');
 const response = require('../utils/response');
 
 exports.getNotes = catchAsync(async (req, res) => {
-  const notes = await notesService.fetchUserNotes(req.user.id);
+  const notes = await notesService.fetchUserNotes(req.user.id, req.query);
   response.send(res, 200, { notes });
 });
 
