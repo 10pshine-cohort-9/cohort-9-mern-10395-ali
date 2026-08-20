@@ -13,6 +13,8 @@ exports.create = async (userId, title, content) => {
       [userId, title, content]
     );
     return result.rows[0];
+  } catch (err) {
+    throw err;
   } finally {
     client.release();
   }
@@ -27,6 +29,8 @@ exports.findAllByUserId = async (userId) => {
       [userId]
     );
     return result.rows;
+  } catch (err) {
+    throw err;
   } finally {
     client.release();
   }
@@ -50,6 +54,8 @@ exports.update = async (id, userId, title, content) => {
       [title, content, id]
     );
     return result.rows[0];
+  } catch (err) {
+    throw err;
   } finally {
     client.release();
   }
@@ -60,6 +66,8 @@ exports.delete = async (id, userId) => {
   try {
     await setSessionUser(client, userId);
     await client.query('DELETE FROM notes WHERE id = $1', [id]);
+  } catch (err) {
+    throw err;
   } finally {
     client.release();
   }
