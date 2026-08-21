@@ -9,23 +9,26 @@ export const useNotes = () => {
   const [error, setError] = useState(null);
   const requestVersion = useRef(0);
 
-  const fetchNotes = useCallback(async (search = '') => {
+  const fetchNotes = useCallback(async (searchQuery = '') => {
+    const search = typeof searchQuery === 'string' ? searchQuery : '';
     const currentVersion = ++requestVersion.current;
+
     setLoading(true);
-    
+    setError(null);
+
     try {
-      const { data } = await api.get('/notes', {
+      const response = await api.get('/notes', {
         params: search ? { search } : {}
       });
 
       if (currentVersion === requestVersion.current) {
-        setNotes(data.data.notes);
-        setError(null);
+        const fetchedData = response?.data?.data?.notes;
+        setNotes(Array.isArray(fetchedData) ? fetchedData : []);
       }
     } catch (err) {
       if (currentVersion === requestVersion.current) {
         setError('Failed to load notes');
-        logger.error({ err }, 'Fetch notes error');
+        logger.error({ err }, 'Fetch notes logic failure');
       }
     } finally {
       if (currentVersion === requestVersion.current) {
@@ -35,12 +38,14 @@ export const useNotes = () => {
   }, []);
 
   const removeNote = async (id) => {
+    if (!id) return false;
+
     try {
       await deleteNote(id);
-      setNotes((prev) => prev.filter((n) => n.id !== id));
+      setNotes((prev) => prev.filter((n) => n && n.id !== id));
       return true;
     } catch (err) {
-      logger.error({ err }, 'Delete note error');
+      logger.error({ err }, 'Delete operation failed');
       return false;
     }
   };
