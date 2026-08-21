@@ -52,21 +52,21 @@ const Profile = () => {
             <div className="group flex items-center justify-between border-b border-slate-50 pb-6">
               <div className="flex items-center gap-4">
                 <User className="text-slate-300" size={20} />
-                <div>
+                <div className="flex-1">
                   <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Full Name</p>
                   {isEditing ? (
-                    <>
+                    <div className="mt-1">
                       <label htmlFor="full-name" className="sr-only">Full Name</label>
                       <input 
                         id="full-name"
-                        className="mt-1 font-bold text-sidebar outline-none ring-2 ring-accent/10 rounded px-2"
+                        className="w-full max-w-60 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-sidebar transition-all focus:border-accent focus:bg-white focus:outline-none focus:ring-4 focus:ring-accent/5"
                         value={newName}
                         onChange={(e) => setNewName(e.target.value)}
                         autoFocus
                       />
-                    </>
+                    </div>
                   ) : (
-                    <p className="font-bold text-sidebar">{profile?.name}</p>
+                    <p className="mt-1 font-bold text-sidebar">{profile?.name}</p>
                   )}
                 </div>
               </div>
@@ -83,7 +83,7 @@ const Profile = () => {
               <Mail className="text-slate-300" size={20} />
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Email Address</p>
-                <p className="font-bold text-sidebar">{profile?.email}</p>
+                <p className="mt-1 font-bold text-sidebar">{profile?.email}</p>
               </div>
             </div>
 
@@ -91,14 +91,14 @@ const Profile = () => {
               <Calendar className="text-slate-300" size={20} />
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Member Since</p>
-                <p className="font-bold text-sidebar">{profile?.created_at && new Date(profile.created_at).toLocaleDateString()}</p>
+                <p className="mt-1 font-bold text-sidebar">{profile?.created_at && new Date(profile.created_at).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
 
           <button 
             onClick={() => { logout(); navigate('/login'); }}
-            className="mt-12 flex w-full items-center justify-center gap-3 rounded-2xl bg-red-50 py-4 font-bold text-red-500 transition-all hover:bg-red-500 hover:text-white"
+            className="mt-12 flex w-full items-center justify-center gap-3 rounded-2xl bg-red-50 py-4 font-bold text-red-500 transition-all hover:bg-red-500 hover:text-white shadow-sm"
           >
             <LogOut size={20} /> Sign Out
           </button>
