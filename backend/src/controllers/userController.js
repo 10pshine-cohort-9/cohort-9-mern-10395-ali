@@ -4,7 +4,9 @@ const response = require('../utils/response');
 
 exports.getMe = catchAsync(async (req, res) => {
   try {
-    const user = await userService.getProfile(req.user.id);
+    const { id: userId } = req.user;
+
+    const user = await userService.getProfile(userId);
     response.send(res, 200, { user });
   } catch (err) {
     throw err;
@@ -13,7 +15,10 @@ exports.getMe = catchAsync(async (req, res) => {
 
 exports.updateMe = catchAsync(async (req, res) => {
   try {
-    const user = await userService.updateProfile(req.user.id, req.body);
+    const { id: userId } = req.user;
+    const { name } = req.body;
+
+    const user = await userService.updateProfile(userId, { name });
     response.send(res, 200, { user });
   } catch (err) {
     throw err;
