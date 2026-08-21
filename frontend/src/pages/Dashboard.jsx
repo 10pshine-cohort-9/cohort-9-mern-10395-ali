@@ -114,16 +114,18 @@ const Dashboard = () => {
           </button>
         </div>
 
-        <div 
+        <button 
+          type="button"
           onClick={() => navigate('/profile')} 
-          className="mb-10 flex flex-col items-center border-b border-white/5 pb-10 cursor-pointer hover:bg-white/5 rounded-2xl transition-colors"
+          aria-label="View Profile"
+          className="mb-10 flex w-full flex-col items-center border-b border-white/5 pb-10 cursor-pointer hover:bg-white/5 rounded-2xl transition-colors outline-none focus:ring-2 focus:ring-accent/50"
         >
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent text-2xl font-black ring-4 ring-white/5">
             {user?.name?.charAt(0)}
           </div>
           <p className="text-xs text-slate-400">View Profile</p>
-          <p className="max-w-50 truncate font-bold">{user?.name}</p>
-        </div>
+          <p className="max-w-50 truncate font-bold text-white">{user?.name}</p>
+        </button>
 
         <nav className="space-y-2">
           <button 

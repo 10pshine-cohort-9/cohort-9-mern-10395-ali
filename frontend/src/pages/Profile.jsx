@@ -22,8 +22,11 @@ const Profile = () => {
   }, [profile]);
 
   const handleUpdate = async () => {
-    const success = await editProfile(newName);
-    if (success) setIsEditing(false);
+    try {
+      const success = await editProfile(newName);
+      if (success) setIsEditing(false);
+    } catch (err) {
+    }
   };
 
   if (loading) return <Loader />;
@@ -52,12 +55,16 @@ const Profile = () => {
                 <div>
                   <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Full Name</p>
                   {isEditing ? (
-                    <input 
-                      className="mt-1 font-bold text-sidebar outline-none ring-2 ring-accent/10 rounded px-2"
-                      value={newName}
-                      onChange={(e) => setNewName(e.target.value)}
-                      autoFocus
-                    />
+                    <>
+                      <label htmlFor="full-name" className="sr-only">Full Name</label>
+                      <input 
+                        id="full-name"
+                        className="mt-1 font-bold text-sidebar outline-none ring-2 ring-accent/10 rounded px-2"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        autoFocus
+                      />
+                    </>
                   ) : (
                     <p className="font-bold text-sidebar">{profile?.name}</p>
                   )}
@@ -65,6 +72,7 @@ const Profile = () => {
               </div>
               <button 
                 onClick={isEditing ? handleUpdate : () => setIsEditing(true)}
+                aria-label={isEditing ? 'Save changes' : 'Edit name'}
                 className="rounded-lg p-2 text-slate-300 hover:bg-slate-50 hover:text-accent transition-all"
               >
                 {isEditing ? <Check size={18} /> : <Edit2 size={18} />}

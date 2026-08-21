@@ -46,6 +46,7 @@ test('renders dashboard layout elements', () => {
   const logoutButton = screen.getByRole('button', { name: /Log Out/i });
   const openMenuButton = screen.getByRole('button', { name: /Open sidebar/i });
   const closeMenuButton = screen.getByRole('button', { name: /Close sidebar/i });
+  const profileButton = screen.getByRole('button', { name: /View Profile/i });
   
   expect(overviewHeading).toBeInTheDocument();
   expect(searchInput).toBeInTheDocument();
@@ -53,6 +54,7 @@ test('renders dashboard layout elements', () => {
   expect(logoutButton).toBeInTheDocument();
   expect(openMenuButton).toBeInTheDocument();
   expect(closeMenuButton).toBeInTheDocument();
+  expect(profileButton).toBeInTheDocument();
 });
 
 test('renders error alert when fetch fails', () => {

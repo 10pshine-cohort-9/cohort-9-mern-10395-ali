@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getNotes, deleteNote } from '../api/notesApi';
+import { deleteNote } from '../api/notesApi';
 import api from '../api/authApi';
 import logger from '../api/logger';
 
@@ -11,7 +11,9 @@ export const useNotes = () => {
   const fetchNotes = useCallback(async (search = '') => {
     setLoading(true);
     try {
-      const { data } = await api.get(`/notes${search ? `?search=${search}` : ''}`);
+      const { data } = await api.get('/notes', {
+        params: search ? { search } : {}
+      });
       setNotes(data.data.notes);
       setError(null);
     } catch (err) {

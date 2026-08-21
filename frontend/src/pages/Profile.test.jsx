@@ -5,14 +5,18 @@ import { AuthProvider } from '../context/AuthContext';
 import Profile from './Profile';
 
 test('renders profile identity section', async () => {
-  render(
-    <AuthProvider>
-      <BrowserRouter>
-        <Profile />
-      </BrowserRouter>
-    </AuthProvider>
-  );
-  
-  const heading = await screen.findByText(/User Profile/i);
-  expect(heading).toBeInTheDocument();
+  try {
+    render(
+      <AuthProvider>
+        <BrowserRouter>
+          <Profile />
+        </BrowserRouter>
+      </AuthProvider>
+    );
+    
+    const heading = await screen.findByText(/User Profile/i);
+    expect(heading).toBeInTheDocument();
+  } catch (err) {
+    throw new Error(`Profile identity section search failed: ${err.message}`);
+  }
 });
