@@ -42,6 +42,7 @@ export const useNotes = () => {
 
     try {
       await deleteNote(id);
+      requestVersion.current++;
       setNotes((prev) => prev.filter((n) => n && n.id !== id));
       return true;
     } catch (err) {
