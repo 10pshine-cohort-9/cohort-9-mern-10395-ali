@@ -1,13 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
-import { LayoutDashboard, FileText, Bell, Search, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { LayoutDashboard, FileText, Bell, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotes } from '../hooks/useNotes';
 import { useNavigate } from 'react-router-dom';
-import NoteCard from '../components/NoteCard';
+import SearchFilters from '../components/SearchFilters';
+import NoteGrid from '../components/NoteGrid';
 import DeleteModal from '../components/DeleteModal';
 import Loader from '../components/Loader';
-import EmptyState from '../components/EmptyState';
 import Alert from '../components/Alert';
+import { debounce } from '../utils/debounce';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -18,9 +19,20 @@ const Dashboard = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [selectedNote, setSelectedNote] = useState(null);
   const [deleteError, setDeleteError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   
   const menuButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
+
+  const debouncedFetch = useCallback(
+    debounce((q) => fetchNotes(q), 500),
+    [fetchNotes]
+  );
+
+  const handleSearch = (val) => {
+    setSearchTerm(val);
+    debouncedFetch(val);
+  };
 
   useEffect(() => {
     fetchNotes();
@@ -102,13 +114,18 @@ const Dashboard = () => {
           </button>
         </div>
 
-        <div className="mb-10 flex flex-col items-center border-b border-white/5 pb-10">
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-slate-700 text-2xl font-bold uppercase ring-4 ring-white/5">
+        <button 
+          type="button"
+          onClick={() => navigate('/profile')} 
+          aria-label="View Profile"
+          className="mb-10 flex w-full flex-col items-center border-b border-white/5 pb-10 cursor-pointer hover:bg-white/5 rounded-2xl transition-colors outline-none focus:ring-2 focus:ring-accent/50"
+        >
+          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent text-2xl font-black ring-4 ring-white/5">
             {user?.name?.charAt(0)}
           </div>
-          <p className="text-xs text-slate-400">Welcome Back,</p>
-          <p className="max-w-50 truncate font-bold">{user?.name}</p>
-        </div>
+          <p className="text-xs text-slate-400">View Profile</p>
+          <p className="max-w-50 truncate font-bold text-white">{user?.name}</p>
+        </button>
 
         <nav className="space-y-2">
           <button 
@@ -165,15 +182,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="relative w-full max-w-md">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              aria-label="Search through notes"
-              placeholder="Search through notes..." 
-              className="w-full rounded-2xl border-none bg-white py-4 pl-12 pr-4 outline-none ring-1 ring-slate-100 focus:ring-2 focus:ring-accent card-shadow"
-            />
-          </div>
+          <SearchFilters onSearch={handleSearch} value={searchTerm} />
 
           <div className="hidden text-right xl:block">
             <p className="font-bold text-sidebar">Activity Score</p>
@@ -227,19 +236,13 @@ const Dashboard = () => {
               </button>
             </div>
             
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {loading ? (
-                <div className="col-span-full"><Loader /></div>
-              ) : error ? (
-                <div className="col-span-full"><Alert message={error} type="error" /></div>
-              ) : notes.length > 0 ? (
-                notes.map(note => (
-                  <NoteCard key={note.id} note={note} onDelete={setSelectedNote} />
-                ))
-              ) : (
-                <div className="col-span-full"><EmptyState /></div>
-              )}
-            </div>
+            {loading ? (
+              <Loader />
+            ) : error ? (
+              <Alert message={error} type="error" />
+            ) : (
+              <NoteGrid notes={notes} onDelete={setSelectedNote} />
+            )}
           </div>
 
           <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-10">
