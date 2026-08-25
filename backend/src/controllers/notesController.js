@@ -1,6 +1,7 @@
 const notesService = require('../services/notesService');
 const catchAsync = require('../utils/catchAsync');
 const response = require('../utils/response');
+const { emitToUser } = require('../config/socket');
 
 exports.getNotes = catchAsync(async (req, res) => {
   try {
@@ -20,6 +21,9 @@ exports.createNote = catchAsync(async (req, res) => {
     const { title, content } = req.body;
 
     const note = await notesService.createNewNote(userId, { title, content });
+
+    emitToUser(userId, 'note:created', { message: 'New note added' });
+
     response.send(res, 201, { note });
   } catch (err) {
     throw err;
@@ -45,6 +49,9 @@ exports.updateNote = catchAsync(async (req, res) => {
     const { title, content } = req.body;
 
     const note = await notesService.editNote(noteId, userId, { title, content });
+
+    emitToUser(userId, 'note:updated', { id: noteId });
+
     response.send(res, 200, { note });
   } catch (err) {
     throw err;
@@ -57,6 +64,9 @@ exports.deleteNote = catchAsync(async (req, res) => {
     const { id: noteId } = req.params;
 
     await notesService.removeNote(noteId, userId);
+
+    emitToUser(userId, 'note:deleted', { id: noteId });
+
     response.send(res, 204, null);
   } catch (err) {
     throw err;
