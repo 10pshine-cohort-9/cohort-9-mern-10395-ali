@@ -10,13 +10,17 @@ describe('Export Service Behavioral Check', () => {
   });
 
   it('should format user notes as a valid JSON string', async () => {
-    const mockNotes = [{ title: 'History Note', content: 'Industrial Revolution' }];
-    Note.findAllByUserId = async () => mockNotes;
+    try {
+      const mockNotes = [{ title: 'History Note', content: 'Industrial Revolution' }];
+      Note.findAllByUserId = async () => mockNotes;
 
-    const result = await exportService.generateUserData('user-123');
-    
-    expect(result).to.be.a('string');
-    const parsed = JSON.parse(result);
-    expect(parsed[0].title).to.equal('History Note');
+      const result = await exportService.generateUserData('user-123');
+      
+      expect(result).to.be.a('string');
+      const parsed = JSON.parse(result);
+      expect(parsed[0].title).to.equal('History Note');
+    } catch (err) {
+      throw new Error(`Export service test failure: ${err.message}`);
+    }
   });
 });

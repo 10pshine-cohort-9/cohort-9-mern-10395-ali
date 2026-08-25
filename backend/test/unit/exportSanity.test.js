@@ -10,10 +10,14 @@ describe('Export Data Sanity', () => {
   });
 
   it('should verify the JSON structure of exported data', async () => {
-    Note.findAllByUserId = async () => [];
-    const result = await exportService.generateUserData('mock-id');
-    
-    expect(result).to.be.a('string');
-    expect(result.startsWith('[')).to.be.true;
+    try {
+      Note.findAllByUserId = async () => [];
+      const result = await exportService.generateUserData('mock-id');
+      
+      expect(result).to.be.a('string');
+      expect(result.startsWith('[')).to.be.true;
+    } catch (err) {
+      throw new Error(`Export sanity test failure: ${err.message}`);
+    }
   });
 });
