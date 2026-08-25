@@ -13,6 +13,11 @@ exports.init = (server) => {
     const token = socket.handshake.auth.token;
     try {
       const decoded = tokenService.verify(token);
+      
+      if (!decoded || !decoded.id) {
+        return next(new Error('Authentication error: Invalid payload'));
+      }
+
       socket.userId = decoded.id;
       next();
     } catch (err) {
@@ -38,5 +43,7 @@ exports.getIO = () => {
 };
 
 exports.emitToUser = (userId, event, data) => {
-  if (io) io.to(`user:${userId}`).emit(event, data);
+  if (io && userId) {
+    io.to(`user:${userId}`).emit(event, data);
+  }
 };

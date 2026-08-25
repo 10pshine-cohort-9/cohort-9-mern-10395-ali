@@ -1,7 +1,19 @@
 const { expect } = require('chai');
+const Note = require('../../src/models/Note');
+const exportService = require('../../src/services/exportService');
 
-describe('Data Sanity', () => {
-  it('should confirm export logic structure', () => {
-    expect(true).to.be.true;
+describe('Export Data Sanity', () => {
+  const originalFindAll = Note.findAllByUserId;
+
+  afterEach(() => {
+    Note.findAllByUserId = originalFindAll;
+  });
+
+  it('should verify the JSON structure of exported data', async () => {
+    Note.findAllByUserId = async () => [];
+    const result = await exportService.generateUserData('mock-id');
+    
+    expect(result).to.be.a('string');
+    expect(result.startsWith('[')).to.be.true;
   });
 });
