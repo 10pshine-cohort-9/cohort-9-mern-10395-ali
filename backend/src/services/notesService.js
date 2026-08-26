@@ -55,20 +55,21 @@ exports.editNote = async (id, userId, data) => {
 };
 
 exports.removeNote = async (id, userId) => {
-  const client = await pool.connect();
+  let client = null;
   try {
+    client = await pool.connect();
     await client.query('BEGIN');
 
     await client.query("SELECT set_config('app.user_id', $1, true)", [userId]);
 
-    const noteCheck = await client.query('SELECT * FROM notes WHERE id = $1', [id]);
-    const note = noteCheck.rows[0];
+    const deletedNote = await client.query(
+      'DELETE FROM notes WHERE id = $1 AND user_id = $2 RETURNING id',
+      [id, userId]
+    );
 
-    if (!note || note.user_id !== userId) {
+    if (deletedNote.rowCount === 0) {
       throw new AppError('Note not found', 404);
     }
-
-    await client.query('DELETE FROM notes WHERE id = $1', [id]);
 
     const userUpdate = await client.query(
       'UPDATE users SET deleted_notes_count = deleted_notes_count + 1 WHERE id = $1 RETURNING deleted_notes_count',
@@ -78,9 +79,9 @@ exports.removeNote = async (id, userId) => {
     await client.query('COMMIT');
     return userUpdate.rows[0].deleted_notes_count;
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (client) await client.query('ROLLBACK');
     throw err;
   } finally {
-    client.release();
+    if (client) client.release();
   }
 };
