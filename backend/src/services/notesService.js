@@ -79,7 +79,12 @@ exports.removeNote = async (id, userId) => {
     await client.query('COMMIT');
     return userUpdate.rows[0].deleted_notes_count;
   } catch (err) {
-    if (client) await client.query('ROLLBACK');
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+      }
+    }
     throw err;
   } finally {
     if (client) client.release();
