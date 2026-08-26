@@ -63,9 +63,12 @@ exports.deleteNote = catchAsync(async (req, res) => {
     const { id: userId } = req.user;
     const { id: noteId } = req.params;
 
-    await notesService.removeNote(noteId, userId);
+    const newDeletedCount = await notesService.removeNote(noteId, userId);
 
-    emitToUser(userId, 'note:deleted', { id: noteId });
+    emitToUser(userId, 'note:deleted', { 
+      id: noteId, 
+      newDeletedCount: newDeletedCount 
+    });
 
     response.send(res, 204, null);
   } catch (err) {

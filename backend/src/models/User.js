@@ -11,8 +11,20 @@ exports.findByEmail = async (email) => {
 
 exports.findById = async (id) => {
   try {
-    const result = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [id]);
+    const result = await pool.query('SELECT id, name, email, deleted_notes_count, created_at FROM users WHERE id = $1', [id]);
     return result.rows[0] || null;
+  } catch (err) {
+    throw err;
+  }
+};
+
+exports.incrementDeletedCount = async (id) => {
+  try {
+    const result = await pool.query(
+      'UPDATE users SET deleted_notes_count = deleted_notes_count + 1 WHERE id = $1 RETURNING deleted_notes_count',
+      [id]
+    );
+    return result.rows[0].deleted_notes_count;
   } catch (err) {
     throw err;
   }

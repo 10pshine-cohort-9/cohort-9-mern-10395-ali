@@ -1,18 +1,16 @@
 const Note = require('../models/Note');
+const User = require('../models/User');
 const AppError = require('../utils/AppError');
-const { pool } = require('../config/db');
 
 exports.fetchUserNotes = async (userId, filters = {}) => {
   try {
     const { search } = filters;
     let query = 'SELECT * FROM notes WHERE user_id = $1';
     const params = [userId];
-
     if (search) {
       query += ' AND (title ILIKE $2 OR content ILIKE $2)';
       params.push(`%${search}%`);
     }
-
     query += ' ORDER BY updated_at DESC';
     const result = await pool.query(query, params);
     return result.rows;
@@ -60,6 +58,8 @@ exports.removeNote = async (id, userId) => {
       throw new AppError('Note not found', 404);
     }
     await Note.delete(id, userId);
+    const newCount = await User.incrementDeletedCount(userId);
+    return newCount;
   } catch (err) {
     throw err;
   }
