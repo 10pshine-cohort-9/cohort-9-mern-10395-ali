@@ -13,37 +13,26 @@ exports.init = (server) => {
     const token = socket.handshake.auth.token;
     try {
       const decoded = tokenService.verify(token);
-      
-      if (!decoded || !decoded.id) {
-        return next(new Error('Authentication error: Invalid payload'));
-      }
-
+      if (!decoded || !decoded.id) return next(new Error('Auth failed'));
       socket.userId = decoded.id;
       next();
     } catch (err) {
-      next(new Error('Authentication error'));
+      next(new Error('Auth failed'));
     }
   });
 
   io.on('connection', (socket) => {
+    // FORCE the socket to join the user-specific room
     socket.join(`user:${socket.userId}`);
-    logger.info({ socketId: socket.id, userId: socket.userId }, 'Socket connected');
-    
-    socket.on('disconnect', () => {
-      logger.info({ socketId: socket.id }, 'Socket disconnected');
-    });
+    logger.info({ userId: socket.userId }, 'User joined private socket room');
   });
 
-  return io;
-};
-
-exports.getIO = () => {
-  if (!io) throw new Error('Socket.io not initialized');
   return io;
 };
 
 exports.emitToUser = (userId, event, data) => {
   if (io && userId) {
+    // This targets only the user with the matching ID
     io.to(`user:${userId}`).emit(event, data);
   }
 };
