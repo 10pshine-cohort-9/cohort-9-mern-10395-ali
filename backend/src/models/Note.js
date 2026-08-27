@@ -1,4 +1,5 @@
 const { pool } = require('../config/db');
+const AppError = require('../utils/AppError');
 
 const setSessionUser = async (client, userId) => {
   await client.query("SELECT set_config('app.user_id', $1, true)", [userId]);
@@ -66,7 +67,10 @@ exports.delete = async (id, userId) => {
   try {
     await client.query('BEGIN');
     await setSessionUser(client, userId);
-    await client.query('DELETE FROM notes WHERE id = $1', [id]);
+    const result = await client.query('DELETE FROM notes WHERE id = $1 RETURNING id', [id]);
+    if (result.rowCount === 0) {
+      throw new AppError('Note not found', 404);
+    }
     await client.query(
       'UPDATE users SET deleted_notes_count = deleted_notes_count + 1 WHERE id = $1',
       [userId]
@@ -74,7 +78,11 @@ exports.delete = async (id, userId) => {
     await client.query('COMMIT');
     return id;
   } catch (err) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch (rollbackErr) {
+      // Preserve the original error if the rollback itself fails
+    }
     throw err;
   } finally {
     client.release();
