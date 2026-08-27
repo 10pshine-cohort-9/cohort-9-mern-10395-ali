@@ -1,6 +1,7 @@
-const Note = require('../models/Note');
-const AppError = require('../utils/AppError');
 const { pool } = require('../config/db');
+const Note = require('../models/Note');
+const User = require('../models/User');
+const AppError = require('../utils/AppError');
 
 exports.fetchUserNotes = async (userId, filters = {}) => {
   try {
@@ -54,13 +55,38 @@ exports.editNote = async (id, userId, data) => {
 };
 
 exports.removeNote = async (id, userId) => {
+  let client = null;
   try {
-    const note = await Note.findById(id);
-    if (!note || note.user_id !== userId) {
+    client = await pool.connect();
+    await client.query('BEGIN');
+
+    await client.query("SELECT set_config('app.user_id', $1, true)", [userId]);
+
+    const deletedNote = await client.query(
+      'DELETE FROM notes WHERE id = $1 AND user_id = $2 RETURNING id',
+      [id, userId]
+    );
+
+    if (deletedNote.rowCount === 0) {
       throw new AppError('Note not found', 404);
     }
-    await Note.delete(id, userId);
+
+    const userUpdate = await client.query(
+      'UPDATE users SET deleted_notes_count = deleted_notes_count + 1 WHERE id = $1 RETURNING deleted_notes_count',
+      [userId]
+    );
+
+    await client.query('COMMIT');
+    return userUpdate.rows[0].deleted_notes_count;
   } catch (err) {
+    if (client) {
+      try {
+        await client.query('ROLLBACK');
+      } catch (rollbackError) {
+      }
+    }
     throw err;
+  } finally {
+    if (client) client.release();
   }
 };
