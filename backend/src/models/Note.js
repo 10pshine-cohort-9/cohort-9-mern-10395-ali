@@ -64,9 +64,17 @@ exports.update = async (id, userId, title, content) => {
 exports.delete = async (id, userId) => {
   const client = await pool.connect();
   try {
+    await client.query('BEGIN');
     await setSessionUser(client, userId);
     await client.query('DELETE FROM notes WHERE id = $1', [id]);
+    await client.query(
+      'UPDATE users SET deleted_notes_count = deleted_notes_count + 1 WHERE id = $1',
+      [userId]
+    );
+    await client.query('COMMIT');
+    return id;
   } catch (err) {
+    await client.query('ROLLBACK');
     throw err;
   } finally {
     client.release();
