@@ -14,7 +14,17 @@ export const SocketProvider = ({ children }) => {
     if (!user) return;
 
     const stored = localStorage.getItem('user');
-    const token = stored ? JSON.parse(stored).token : null;
+    let token = null;
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed.token === 'string') {
+          token = parsed.token;
+        }
+      } catch (err) {
+        console.error('Failed to parse session:', err);
+      }
+    }
 
     if (!token) return;
 

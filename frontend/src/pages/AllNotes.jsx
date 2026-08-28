@@ -34,7 +34,9 @@ const AllNotes = () => {
       socket.on('note:updated', refresh);
       socket.on('note:deleted', refresh);
       return () => {
-        socket.off('note:created'); socket.off('note:updated'); socket.off('note:deleted');
+        socket.off('note:created', refresh);
+        socket.off('note:updated', refresh);
+        socket.off('note:deleted', refresh);
       };
     }
   }, [socket, fetchNotes, searchTerm]);
