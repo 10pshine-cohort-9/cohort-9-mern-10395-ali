@@ -19,6 +19,7 @@ const AllNotes = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedNote, setSelectedNote] = useState(null);
+  const [deleteError, setDeleteError] = useState('');
   const menuButtonRef = useRef(null);
 
   const debouncedFetch = useCallback(debounce((q) => fetchNotes(q), 500), [fetchNotes]);
@@ -68,7 +69,9 @@ const AllNotes = () => {
         {loading ? <Loader /> : error ? <Alert message={error} /> : <NoteGrid notes={notes} onDelete={setSelectedNote} />}
       </main>
 
-      <DeleteModal isOpen={!!selectedNote} noteTitle={selectedNote?.title} onClose={() => setSelectedNote(null)} onConfirm={async () => { await removeNote(selectedNote.id); setSelectedNote(null); }} />
+      <DeleteModal isOpen={!!selectedNote} noteTitle={selectedNote?.title} onClose={() => { setSelectedNote(null); setDeleteError(''); }} onConfirm={async () => { setDeleteError(''); try { const success = await removeNote(selectedNote.id); if (success) { setSelectedNote(null); } else { setDeleteError('Could not delete note. Please try again.'); } } catch (err) { setDeleteError('An unexpected error occurred during deletion.'); } }}>
+        {deleteError && <Alert message={deleteError} />}
+      </DeleteModal>
     </div>
   );
 };

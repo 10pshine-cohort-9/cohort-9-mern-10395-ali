@@ -196,7 +196,7 @@ const Dashboard = () => {
 
           <div className="flex-1 flex justify-center items-center gap-4 px-4 max-w-2xl mx-auto">
             <SearchFilters onSearch={handleSearch} value={searchTerm} />
-            <ImportControl onComplete={(res) => { setImportResults(res); fetchNotes(); }} />
+            <ImportControl onComplete={(res) => { setImportResults(res); fetchNotes(searchTerm); }} />
           </div>
         </header>
 

@@ -8,6 +8,9 @@ import Dashboard from './Dashboard';
 
 jest.mock('../hooks/useNotes');
 jest.mock('../hooks/useSocket');
+jest.mock('../api/userApi', () => ({
+  getProfile: jest.fn().mockResolvedValue({ data: { data: { user: { deleted_notes_count: 0 } } } })
+}));
 
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {

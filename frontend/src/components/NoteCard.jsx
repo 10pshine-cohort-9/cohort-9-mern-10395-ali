@@ -16,11 +16,13 @@ const NoteCard = ({ note, onDelete }) => {
     const plainText = getPlainText(note.content);
     const element = document.createElement('a');
     const file = new Blob([`Title: ${note.title}\n\n${plainText}`], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
+    const url = URL.createObjectURL(file);
+    element.href = url;
     element.download = `${note.title.replace(/\s+/g, '_')}.txt`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   };
 
   const preview = DOMPurify.sanitize(note.content) || 'No additional content...';

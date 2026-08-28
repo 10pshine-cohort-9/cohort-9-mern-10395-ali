@@ -4,6 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 
 export const SocketContext = createContext();
 
+const BACKEND_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const { user } = useAuth();
@@ -16,7 +18,7 @@ export const SocketProvider = ({ children }) => {
 
     if (!token) return;
 
-    const newSocket = io('http://localhost:5000', {
+    const newSocket = io(BACKEND_ORIGIN, {
       auth: { token },
       reconnection: true
     });
