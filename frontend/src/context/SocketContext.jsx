@@ -26,7 +26,10 @@ export const SocketProvider = ({ children }) => {
       }
     }
 
-    if (!token) return;
+    if (!token) {
+      setSocket(null);
+      return;
+    }
 
     const newSocket = io(BACKEND_ORIGIN, {
       auth: { token },
@@ -43,6 +46,7 @@ export const SocketProvider = ({ children }) => {
     return () => {
       newSocket.off();
       newSocket.disconnect();
+      setSocket(null);
     };
   }, [user]);
 
