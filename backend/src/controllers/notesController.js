@@ -63,11 +63,10 @@ exports.deleteNote = catchAsync(async (req, res) => {
     const { id: userId } = req.user;
     const { id: noteId } = req.params;
 
-    const newDeletedCount = await notesService.removeNote(noteId, userId);
+    const deletedNoteId = await notesService.removeNote(noteId, userId);
 
     emitToUser(userId, 'note:deleted', { 
-      id: noteId, 
-      newDeletedCount: newDeletedCount 
+      noteId: deletedNoteId
     });
 
     response.send(res, 204, null);
@@ -75,3 +74,4 @@ exports.deleteNote = catchAsync(async (req, res) => {
     throw err;
   }
 });
+
