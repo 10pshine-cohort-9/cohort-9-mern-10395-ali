@@ -79,7 +79,7 @@ const NoteEditor = () => {
 
         {error && <Alert message={error} type="error" />}
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-10">
+        <div className="rounded-3xl bg-slate-50 p-6 shadow-sm ring-1 ring-slate-200 md:p-10">
           <input
             type="text"
             placeholder="Note Title"

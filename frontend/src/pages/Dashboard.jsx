@@ -1,18 +1,23 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { LayoutDashboard, FileText, Bell, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
+import { LayoutDashboard, FileText, LogOut, Plus, StickyNote, Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useNotes } from '../hooks/useNotes';
+import { useSocket } from '../hooks/useSocket';
 import { useNavigate } from 'react-router-dom';
 import SearchFilters from '../components/SearchFilters';
 import NoteGrid from '../components/NoteGrid';
 import DeleteModal from '../components/DeleteModal';
 import Loader from '../components/Loader';
 import Alert from '../components/Alert';
+import ImportControl from '../components/ImportControl';
+import ImportSummary from '../components/ImportSummary';
+import { getProfile } from '../api/userApi';
 import { debounce } from '../utils/debounce';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
   const { notes, loading, error, fetchNotes, removeNote } = useNotes();
+  const socket = useSocket();
   const navigate = useNavigate();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -20,6 +25,8 @@ const Dashboard = () => {
   const [selectedNote, setSelectedNote] = useState(null);
   const [deleteError, setDeleteError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [importResults, setImportResults] = useState(null);
+  const [deletedCount, setDeletedCount] = useState(user?.deleted_notes_count || 0);
   
   const menuButtonRef = useRef(null);
   const closeButtonRef = useRef(null);
@@ -38,6 +45,32 @@ const Dashboard = () => {
     fetchNotes();
   }, [fetchNotes]);
 
+  const syncDeletedCount = useCallback(() => {
+    getProfile()
+      .then(({ data }) => {
+        const count = data?.data?.user?.deleted_notes_count;
+        if (typeof count === 'number') {
+          setDeletedCount(count);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    getProfile()
+      .then(({ data }) => {
+        const count = data?.data?.user?.deleted_notes_count;
+        if (active && typeof count === 'number') {
+          setDeletedCount(count);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [syncDeletedCount]);
+
   useEffect(() => {
     const mql = window.matchMedia('(max-width: 1023px)');
     const onChange = () => setIsMobile(mql.matches);
@@ -45,6 +78,26 @@ const Dashboard = () => {
     setIsMobile(mql.matches);
     return () => mql.removeEventListener('change', onChange);
   }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleUpdate = () => fetchNotes(searchTerm);
+    const handleDelete = () => {
+      fetchNotes(searchTerm);
+      syncDeletedCount();
+    };
+
+    socket.on('note:created', handleUpdate);
+    socket.on('note:updated', handleUpdate);
+    socket.on('note:deleted', handleDelete);
+
+    return () => {
+      socket.off('note:created', handleUpdate);
+      socket.off('note:updated', handleUpdate);
+      socket.off('note:deleted', handleDelete);
+    };
+  }, [socket, fetchNotes, searchTerm, syncDeletedCount]);
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
@@ -76,6 +129,7 @@ const Dashboard = () => {
     try {
       const success = await removeNote(selectedNote.id);
       if (success) {
+        setDeletedCount((prev) => prev + 1);
         setSelectedNote(null);
       } else {
         setDeleteError('Could not delete note. Please try again.');
@@ -86,7 +140,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-surface">
+    <div className="flex min-h-screen bg-surface text-slate-800">
       <div 
         className={`fixed inset-0 z-40 bg-sidebar/50 transition-opacity lg:hidden ${isSidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`} 
         onClick={closeSidebar}
@@ -94,7 +148,7 @@ const Dashboard = () => {
 
       <aside 
         id="main-sidebar"
-        inert={isMobile && !isSidebarOpen ? "true" : undefined}
+        inert={isMobile && !isSidebarOpen ? true : undefined}
         className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col transform bg-sidebar p-6 text-white transition-transform duration-300 lg:static lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="mb-10 flex items-center justify-between">
@@ -104,178 +158,83 @@ const Dashboard = () => {
             </div>
             <span className="text-xl font-bold tracking-tight">Notes Space</span>
           </div>
-          <button 
-            ref={closeButtonRef}
-            className="lg:hidden" 
-            onClick={closeSidebar}
-            aria-label="Close sidebar"
-          >
-            <X size={24} />
-          </button>
+          <button ref={closeButtonRef} className="lg:hidden" onClick={closeSidebar} aria-label="Close sidebar"><X size={24} /></button>
         </div>
 
         <button 
           type="button"
           onClick={() => navigate('/profile')} 
           aria-label="View Profile"
-          className="mb-10 flex w-full flex-col items-center border-b border-white/5 pb-10 cursor-pointer hover:bg-white/5 rounded-2xl transition-colors outline-none focus:ring-2 focus:ring-accent/50"
+          className="mb-10 flex w-full flex-col items-center border-b border-white/10 pb-10 cursor-pointer hover:bg-white/5 rounded-2xl transition-colors outline-none focus:ring-2 focus:ring-accent/50"
         >
-          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent text-2xl font-black ring-4 ring-white/5">
+          <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-accent text-2xl font-black ring-4 ring-white/10">
             {user?.name?.charAt(0)}
           </div>
-          <p className="text-xs text-slate-400">View Profile</p>
-          <p className="max-w-50 truncate font-bold text-white">{user?.name}</p>
+          <p className="text-xs text-slate-300 font-medium">View Profile</p>
+          <p className="max-w-50 truncate font-bold text-white text-lg">{user?.name}</p>
         </button>
 
-        <nav className="space-y-2">
-          <button 
-            type="button"
-            className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white/10 p-4 font-medium transition-all"
-          >
-            <LayoutDashboard size={20} /> <span>Dashboard</span>
-          </button>
-          <button 
-            type="button"
-            className="flex w-full cursor-pointer items-center gap-3 p-4 text-slate-400 transition-all hover:bg-white/5 hover:text-white"
-          >
-            <FileText size={20} /> <span>All Notes</span>
-          </button>
-          <button 
-            type="button"
-            className="group flex w-full cursor-pointer items-center gap-3 p-4 text-slate-400 transition-all hover:bg-white/5 hover:text-white"
-          >
-            <Bell size={20} /> 
-            <span className="flex-1 text-left">Reminders</span>
-            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white shadow-sm ring-2 ring-sidebar">
-              5
-            </span>
-          </button>
+        <nav className="space-y-2 flex-1">
+          <button type="button" onClick={() => navigate('/')} className="flex w-full cursor-pointer items-center gap-3 rounded-xl bg-white/10 p-4 font-bold transition-all text-white"><LayoutDashboard size={20} /> <span>Dashboard</span></button>
+          <button type="button" onClick={() => navigate('/all-notes')} className="flex w-full cursor-pointer items-center gap-3 p-4 text-slate-300 font-bold transition-all hover:bg-white/5 hover:text-white"><FileText size={20} /> <span>All Notes</span></button>
         </nav>
 
-        <button 
-          onClick={logout} 
-          className="mt-auto flex items-center gap-3 p-4 text-red-400 transition-all hover:bg-red-500/10 hover:text-red-300"
-        >
-          <LogOut size={20} /> <span>Log Out</span>
-        </button>
+        <button onClick={logout} className="mt-auto flex items-center gap-3 p-4 text-red-400 transition-all hover:bg-red-500/10 hover:text-red-300 font-black tracking-tight"><LogOut size={20} /> <span>Log Out</span></button>
       </aside>
 
       <main 
-        inert={isMobile && isSidebarOpen ? "true" : undefined}
+        inert={isMobile && isSidebarOpen ? true : undefined} 
         className="flex-1 overflow-y-auto p-4 md:p-8 lg:p-10"
       >
-        <header className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
-            <button 
-              ref={menuButtonRef}
-              className="rounded-lg bg-white p-2 text-sidebar shadow-sm lg:hidden" 
-              onClick={() => setIsSidebarOpen(true)}
-              aria-label="Open sidebar"
-              aria-expanded={isSidebarOpen}
-              aria-controls="main-sidebar"
-            >
-              <Menu size={24} />
-            </button>
+        <header className="mb-10 flex flex-col gap-8 md:flex-row md:items-center">
+          <div className="flex items-center gap-4 min-w-max">
+            <button ref={menuButtonRef} className="rounded-lg bg-white p-2 text-sidebar shadow-sm lg:hidden border border-slate-100" onClick={() => setIsSidebarOpen(true)} aria-label="Open sidebar" aria-expanded={isSidebarOpen} aria-controls="main-sidebar"><Menu size={24} /></button>
             <div>
-              <h1 className="text-2xl font-bold text-sidebar md:text-3xl">Overview</h1>
-              <p className="text-slate-500">Managing your personal workspace</p>
+              <h1 className="text-2xl font-black text-sidebar md:text-3xl tracking-tight">Overview</h1>
             </div>
           </div>
 
-          <SearchFilters onSearch={handleSearch} value={searchTerm} />
-
-          <div className="hidden text-right xl:block">
-            <p className="font-bold text-sidebar">Activity Score</p>
-            <p className="text-sm font-medium text-green-500">+12% this week</p>
+          <div className="flex-1 flex justify-center items-center gap-4 px-4 max-w-2xl mx-auto">
+            <SearchFilters onSearch={handleSearch} value={searchTerm} />
+            <ImportControl onComplete={(res) => { setImportResults(res); fetchNotes(); }} />
           </div>
         </header>
 
-        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-3xl bg-cardGreen p-8 shadow-sm transition-transform hover:scale-[1.02]">
-            <p className="font-medium text-slate-600">Total Notes</p>
+        {importResults && <ImportSummary results={importResults} onClose={() => setImportResults(null)} />}
+
+        <div className="mb-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="rounded-3xl bg-cardGreen p-8 shadow-sm transition-transform hover:scale-[1.02] border border-green-200">
+            <p className="font-black text-slate-800 text-sm uppercase tracking-wide">Total Notes</p>
             <h2 className="mt-2 text-4xl font-black text-sidebar">{notes.length}</h2>
-            <div className="mt-4 h-1.5 w-full rounded-full bg-sidebar/5">
-              <div className="h-full w-full rounded-full bg-green-500" />
-            </div>
+            <div className="mt-4 h-1.5 w-full rounded-full bg-sidebar/10"><div className="h-full w-full rounded-full bg-green-600" /></div>
           </div>
-          <div className="rounded-3xl bg-cardYellow p-8 shadow-sm transition-transform hover:scale-[1.02]">
-            <p className="font-medium text-slate-600">Pinned</p>
-            <h2 className="mt-2 text-4xl font-black text-sidebar">0</h2>
-            <div className="mt-4 h-1.5 w-full rounded-full bg-sidebar/5">
-              <div className="h-full w-0 rounded-full bg-yellow-500" />
-            </div>
+          <div className="rounded-3xl bg-red-50 p-8 shadow-sm transition-transform hover:scale-[1.02] border border-red-100">
+            <p className="font-black text-red-800 text-sm uppercase tracking-wide">Deleted Notes</p>
+            <h2 className="mt-2 text-4xl font-black text-red-900">{deletedCount}</h2>
+            <div className="mt-4 h-1.5 w-full rounded-full bg-red-900/5"><div className="h-full w-full rounded-full bg-red-500" style={{ width: deletedCount > 0 ? '100%' : '0%' }} /></div>
           </div>
-          <div className="group relative overflow-hidden rounded-3xl bg-cardPurple p-8 shadow-sm transition-all hover:bg-cardPurple/80">
-            <p className="font-bold text-sidebar">Go Pro</p>
-            <p className="mb-4 text-xs text-slate-500">Get unlimited cloud sync</p>
-            <button className="rounded-xl bg-sidebar px-5 py-2.5 text-xs font-bold text-white transition-all hover:bg-slate-800">
-              Upgrade
-            </button>
-          </div>
-          <div className="flex flex-col items-center justify-center rounded-3xl bg-white p-8 shadow-sm ring-1 ring-slate-100">
-            <p className="text-sm font-bold text-slate-500">Tag Capacity</p>
-            <div className="relative mt-3 flex h-16 w-16 items-center justify-center">
-               <svg className="h-full w-full" viewBox="0 0 36 36" aria-hidden="true">
-                 <path className="text-slate-100" strokeDasharray="100, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" />
-                 <path className="text-accent" strokeDasharray="75, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-               </svg>
-               <span className="absolute text-xs font-bold text-sidebar">75%</span>
-            </div>
+          <div className="group relative overflow-hidden rounded-3xl bg-cardPurple p-8 shadow-sm transition-all hover:bg-cardPurple/80 border border-purple-200">
+            <p className="font-black text-slate-800 text-sm uppercase tracking-wide">Storage Status</p>
+            <button className="mt-4 rounded-xl bg-sidebar px-6 py-2.5 text-xs font-black text-white transition-all hover:bg-slate-800 shadow-md">Upgrade Plan</button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 xl:grid-cols-3">
-          <div className="col-span-1 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-10 xl:col-span-2">
-            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <h3 className="text-xl font-bold text-sidebar">Recent Workspace</h3>
-              <button 
-                onClick={() => navigate('/new')}
-                className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-bold text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 active:scale-95"
-              >
-                <Plus size={18} /> Create New
-              </button>
+        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200 md:p-10 border border-slate-100">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-50 pb-6">
+            <div>
+              <h3 className="text-xl font-black text-sidebar">Recent Workspace</h3>
             </div>
-            
-            {loading ? (
-              <Loader />
-            ) : error ? (
-              <Alert message={error} type="error" />
-            ) : (
-              <NoteGrid notes={notes} onDelete={setSelectedNote} />
-            )}
+            <div className="flex items-center gap-4">
+              <button onClick={() => navigate('/all-notes')} className="text-sm font-black text-accent hover:underline flex items-center gap-1"><FileText size={16}/> View All</button>
+              <button onClick={() => navigate('/new')} className="flex items-center justify-center gap-2 rounded-xl bg-accent px-6 py-3 text-sm font-black text-white shadow-lg shadow-accent/20 transition-all hover:bg-accent/90 active:scale-95"><Plus size={18} /> Create New</button>
+            </div>
           </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-100 md:p-10">
-             <h3 className="mb-8 text-xl font-bold text-sidebar">Live Activity</h3>
-             <div className="space-y-8">
-                <div className="flex items-center justify-between border-l-4 border-accent pl-4">
-                  <div>
-                    <p className="text-sm font-bold text-sidebar">Sync Completed</p>
-                    <p className="text-xs text-slate-400">Just now</p>
-                  </div>
-                  <p className="text-xs font-black text-accent uppercase tracking-tighter">Success</p>
-                </div>
-                <div className="flex items-center justify-between border-l-4 border-slate-100 pl-4">
-                  <div>
-                    <p className="text-sm font-bold text-sidebar">System Ready</p>
-                    <p className="text-xs text-slate-400">1 hour ago</p>
-                  </div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-tighter">Online</p>
-                </div>
-             </div>
-          </div>
+          
+          {loading ? <Loader /> : error ? <Alert message={error} type="error" /> : <NoteGrid notes={notes.slice(0, 3)} onDelete={setSelectedNote} />}
         </div>
       </main>
 
-      <DeleteModal 
-        isOpen={!!selectedNote} 
-        noteTitle={selectedNote?.title} 
-        onClose={() => {
-          setSelectedNote(null);
-          setDeleteError('');
-        }} 
-        onConfirm={handleDeleteConfirm} 
-      >
+      <DeleteModal isOpen={!!selectedNote} noteTitle={selectedNote?.title} onClose={() => { setSelectedNote(null); setDeleteError(''); }} onConfirm={handleDeleteConfirm}>
         {deleteError && <Alert message={deleteError} type="error" />}
       </DeleteModal>
     </div>
