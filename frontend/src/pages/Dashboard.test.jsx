@@ -3,9 +3,14 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import { useNotes } from '../hooks/useNotes';
+import { useSocket } from '../hooks/useSocket';
 import Dashboard from './Dashboard';
 
 jest.mock('../hooks/useNotes');
+jest.mock('../hooks/useSocket');
+jest.mock('../api/userApi', () => ({
+  getProfile: jest.fn().mockResolvedValue({ data: { data: { user: { deleted_notes_count: 0 } } } })
+}));
 
 beforeAll(() => {
   Object.defineProperty(window, 'matchMedia', {
@@ -23,6 +28,16 @@ beforeAll(() => {
   });
 });
 
+const renderDashboard = () => {
+  return render(
+    <AuthProvider>
+      <BrowserRouter>
+        <Dashboard />
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
+
 test('renders dashboard layout elements', () => {
   useNotes.mockReturnValue({
     notes: [],
@@ -32,29 +47,19 @@ test('renders dashboard layout elements', () => {
     removeNote: jest.fn()
   });
 
-  render(
-    <AuthProvider>
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>
-    </AuthProvider>
-  );
+  useSocket.mockReturnValue({
+    on: jest.fn(),
+    off: jest.fn()
+  });
+
+  renderDashboard();
   
-  const overviewHeading = screen.getByRole('heading', { name: /Overview/i, level: 1 });
-  const searchInput = screen.getByRole('textbox', { name: /Search notes/i });
-  const logoText = screen.getByText(/Notes Space/i);
-  const logoutButton = screen.getByRole('button', { name: /Log Out/i });
-  const openMenuButton = screen.getByRole('button', { name: /Open sidebar/i });
-  const closeMenuButton = screen.getByRole('button', { name: /Close sidebar/i });
-  const profileButton = screen.getByRole('button', { name: /View Profile/i });
-  
-  expect(overviewHeading).toBeInTheDocument();
-  expect(searchInput).toBeInTheDocument();
-  expect(logoText).toBeInTheDocument();
-  expect(logoutButton).toBeInTheDocument();
-  expect(openMenuButton).toBeInTheDocument();
-  expect(closeMenuButton).toBeInTheDocument();
-  expect(profileButton).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /Overview/i, level: 1 })).toBeInTheDocument();
+  expect(screen.getByRole('textbox', { name: /Search notes/i })).toBeInTheDocument();
+  expect(screen.getByText(/Notes Space/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Log Out/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /View Profile/i })).toBeInTheDocument();
+  expect(screen.getByText(/Import .txt/i)).toBeInTheDocument();
 });
 
 test('renders error alert when fetch fails', () => {
@@ -66,13 +71,12 @@ test('renders error alert when fetch fails', () => {
     removeNote: jest.fn()
   });
 
-  render(
-    <AuthProvider>
-      <BrowserRouter>
-        <Dashboard />
-      </BrowserRouter>
-    </AuthProvider>
-  );
+  useSocket.mockReturnValue({
+    on: jest.fn(),
+    off: jest.fn()
+  });
+
+  renderDashboard();
   
   expect(screen.getByRole('alert')).toHaveTextContent(/Failed to load notes/i);
 });

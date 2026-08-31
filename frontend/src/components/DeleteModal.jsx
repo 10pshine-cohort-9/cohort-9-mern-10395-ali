@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { AlertTriangle } from 'lucide-react';
 
-const DeleteModal = ({ isOpen, noteTitle, onConfirm, onClose }) => {
+const DeleteModal = ({ isOpen, noteTitle, onConfirm, onClose, children }) => {
   const cancelRef = useRef(null);
 
   useEffect(() => {
@@ -47,6 +47,7 @@ const DeleteModal = ({ isOpen, noteTitle, onConfirm, onClose }) => {
         <p className="mb-8 text-sm text-slate-500">
           Are you sure you want to delete <span className="font-bold text-sidebar">"{noteTitle}"</span>? This action cannot be undone.
         </p>
+        {children}
         <div className="flex gap-3">
           <button 
             ref={cancelRef}
