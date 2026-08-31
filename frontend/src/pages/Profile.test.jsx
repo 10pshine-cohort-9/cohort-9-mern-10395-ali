@@ -4,6 +4,11 @@ import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../context/AuthContext';
 import Profile from './Profile';
 
+jest.mock('../api/userApi', () => ({
+  getProfile: jest.fn(() => Promise.resolve({ data: { data: { user: { name: 'Ali', email: 'ali@test.com' } } } })),
+  updateProfile: jest.fn()
+}));
+
 test('renders profile identity section', async () => {
   try {
     render(

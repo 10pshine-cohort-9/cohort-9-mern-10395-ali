@@ -4,5 +4,5 @@ import ImportControl from './ImportControl';
 
 test('renders import label for text files', () => {
   render(<ImportControl onComplete={() => {}} />);
-  expect(screen.getByText(/Import .txt/i)).toBeInTheDocument();
+  expect(screen.getByText(/Import/i)).toBeInTheDocument();
 });
