@@ -7,6 +7,5 @@ const router = express.Router();
 router.use(auth);
 
 router.get('/me', userController.getMe);
-router.put('/me', userController.updateMe);
 
 module.exports = router;

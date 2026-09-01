@@ -1,6 +1,24 @@
-import * as dataApi from './dataApi';
+import api from './authApi';
+import { exportNotes, importNotes } from './dataApi';
 
-test('dataApi definitions check', () => {
-  expect(typeof dataApi.exportNotes).toBe('function');
-  expect(typeof dataApi.importNotes).toBe('function');
+jest.mock('./authApi', () => ({
+  __esModule: true,
+  default: { get: jest.fn(), post: jest.fn(), put: jest.fn(), delete: jest.fn() },
+}));
+
+test('exportNotes downloads the notes as a blob', async () => {
+  api.get.mockResolvedValue({ data: {} });
+
+  await exportNotes();
+
+  expect(api.get).toHaveBeenCalledWith('/data/export', { responseType: 'blob' });
+});
+
+test('importNotes posts the notes payload', async () => {
+  api.post.mockResolvedValue({ data: { data: { imported: 1, skipped: 0 } } });
+  const payload = [{ title: 'Note A', content: 'Body' }];
+
+  await importNotes(payload);
+
+  expect(api.post).toHaveBeenCalledWith('/data/import', payload);
 });

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { getProfile, updateProfile } from '../api/userApi';
+import { getProfile } from '../api/userApi';
 
 export const useUser = () => {
   const [profile, setProfile] = useState(null);
@@ -19,17 +19,5 @@ export const useUser = () => {
     }
   }, []);
 
-  const editProfile = async (name) => {
-    setError(null);
-    try {
-      const { data } = await updateProfile({ name });
-      setProfile(data.data.user);
-      return true;
-    } catch (err) {
-      setError('Failed to update profile');
-      return false;
-    }
-  };
-
-  return { profile, loading, error, fetchProfile, editProfile };
+  return { profile, loading, error, fetchProfile };
 };

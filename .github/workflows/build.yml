@@ -33,7 +33,7 @@ jobs:
         run: |
           cd frontend
           npm ci --ignore-scripts
-          npm run test
+          npm run test -- --coverage
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v5.0.0

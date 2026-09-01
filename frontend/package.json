@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "jest --coverage --watchAll=false"
+    "test": "jest --watchAll=false"
   },
   "dependencies": {
     "axios": "^1.19.0",

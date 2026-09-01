@@ -1,25 +1,19 @@
 const { expect } = require('chai');
+const { pool } = require('../../../src/config/db');
 const notesService = require('../../../src/services/notesService');
-const userService = require('../../../src/services/userService');
 
 describe('Critical Logic Hardening', () => {
-  it('should throw error when note id is invalid in detail fetch', async () => {
-    let errorCaught = null;
-    try {
-      await notesService.getNoteDetail(null, 'user-1');
-    } catch (err) {
-      errorCaught = err;
-    }
-    expect(errorCaught).to.not.be.null;
-  });
+  it('should throw a 404 when the requested note is missing', async () => {
+    const originalQuery = pool.query;
+    pool.query = async () => ({ rows: [], rowCount: 0 });
 
-  it('should reject whitespace names in profile update', async () => {
-    let errorCaught = null;
     try {
-      await userService.updateProfile('user-1', { name: '   ' });
+      await notesService.getNoteDetail('missing-note', 'user-1');
+      expect.fail('expected the lookup to fail');
     } catch (err) {
-      errorCaught = err;
+      expect(err.statusCode).to.equal(404);
+    } finally {
+      pool.query = originalQuery;
     }
-    expect(errorCaught.statusCode).to.equal(400);
   });
 });

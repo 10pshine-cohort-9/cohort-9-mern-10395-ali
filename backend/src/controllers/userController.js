@@ -13,14 +13,3 @@ exports.getMe = catchAsync(async (req, res) => {
   }
 });
 
-exports.updateMe = catchAsync(async (req, res) => {
-  try {
-    const { id: userId } = req.user;
-    const { name } = req.body;
-
-    const user = await userService.updateProfile(userId, { name });
-    response.send(res, 200, { user });
-  } catch (err) {
-    throw err;
-  }
-});
