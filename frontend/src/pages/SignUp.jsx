@@ -101,7 +101,7 @@ const SignUp = () => {
               onChange={handleChange}
             />
           </div>
-          <button className="w-full rounded-xl bg-accent p-4 font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]">
+          <button type="submit" className="w-full rounded-xl bg-accent p-4 font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]">
             Get Started
           </button>
         </form>

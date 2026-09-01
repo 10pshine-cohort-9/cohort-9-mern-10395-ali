@@ -59,7 +59,7 @@ const Login = () => {
             className="w-full rounded-xl border border-slate-200 p-4 outline-none transition-all focus:border-accent focus:ring-1 focus:ring-accent"
             onChange={(e) => setPassword(e.target.value)}
           />
-          <button className="w-full rounded-xl bg-accent p-4 font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]">
+          <button type="submit" className="w-full rounded-xl bg-accent p-4 font-bold text-white transition-all hover:bg-accent/90 active:scale-[0.98]">
             Sign In
           </button>
         </form>

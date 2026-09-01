@@ -4,6 +4,22 @@ import api from '../api/authApi';
 
 export const AuthContext = createContext();
 
+const sanitizeUser = (user) => {
+  if (!user || typeof user !== 'object') return null;
+  return {
+    id: typeof user.id === 'string' ? user.id : '',
+    name: typeof user.name === 'string' ? user.name : '',
+    email: typeof user.email === 'string' ? user.email : '',
+    deleted_notes_count: typeof user.deleted_notes_count === 'number' ? user.deleted_notes_count : 0
+  };
+};
+
+const sanitizeSession = (data) => {
+  const user = sanitizeUser(data && data.user);
+  const token = data && typeof data.token === 'string' ? data.token : '';
+  return { user, token };
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -12,10 +28,10 @@ export const AuthProvider = ({ children }) => {
     try {
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        const data = JSON.parse(storedUser);
-        if (data && data.token && data.user) {
-          api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-          setUser(data.user);
+        const session = sanitizeSession(JSON.parse(storedUser));
+        if (session.token && session.user) {
+          api.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
+          setUser(session.user);
           logger.info('Session restored from storage');
         }
       }
@@ -30,14 +46,16 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loginUser = (data) => {
+    const session = sanitizeSession(data);
+    if (!session.token || !session.user) return;
+
     try {
-      const session = { user: data.user, token: data.token };
       localStorage.setItem('user', JSON.stringify(session));
     } catch (err) {
       logger.error({ err }, 'Failed to persist login session');
     }
-    api.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
-    setUser(data.user);
+    api.defaults.headers.common['Authorization'] = `Bearer ${session.token}`;
+    setUser(session.user);
     logger.info('Login session active');
   };
 
