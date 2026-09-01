@@ -9,11 +9,15 @@ jest.mock('./authApi', () => ({
 beforeEach(() => jest.clearAllMocks());
 
 test('getNotes fetches the notes list', async () => {
-  api.get.mockResolvedValue({ data: { data: { notes: [] } } });
+  try {
+    api.get.mockResolvedValue({ data: { data: { notes: [] } } });
 
-  await getNotes();
+    await getNotes();
 
-  expect(api.get).toHaveBeenCalledWith('/notes');
+    expect(api.get).toHaveBeenCalledWith('/notes');
+  } catch (err) {
+    throw err;
+  }
 });
 
 test('getNoteById requires an id', () => {
@@ -21,11 +25,15 @@ test('getNoteById requires an id', () => {
 });
 
 test('getNoteById fetches a single note', async () => {
-  api.get.mockResolvedValue({ data: { data: { note: { id: '1' } } } });
+  try {
+    api.get.mockResolvedValue({ data: { data: { note: { id: '1' } } } });
 
-  await getNoteById('1');
+    await getNoteById('1');
 
-  expect(api.get).toHaveBeenCalledWith('/notes/1');
+    expect(api.get).toHaveBeenCalledWith('/notes/1');
+  } catch (err) {
+    throw err;
+  }
 });
 
 test('createNote requires a title', () => {
@@ -33,11 +41,15 @@ test('createNote requires a title', () => {
 });
 
 test('createNote posts a new note', async () => {
-  api.post.mockResolvedValue({ data: { data: { note: {} } } });
+  try {
+    api.post.mockResolvedValue({ data: { data: { note: {} } } });
 
-  await createNote({ title: 'New Note', content: 'Body' });
+    await createNote({ title: 'New Note', content: 'Body' });
 
-  expect(api.post).toHaveBeenCalledWith('/notes', { title: 'New Note', content: 'Body' });
+    expect(api.post).toHaveBeenCalledWith('/notes', { title: 'New Note', content: 'Body' });
+  } catch (err) {
+    throw err;
+  }
 });
 
 test('updateNote requires an id and a title', () => {
@@ -45,11 +57,15 @@ test('updateNote requires an id and a title', () => {
 });
 
 test('updateNote sends the changed values', async () => {
-  api.put.mockResolvedValue({ data: { data: { note: {} } } });
+  try {
+    api.put.mockResolvedValue({ data: { data: { note: {} } } });
 
-  await updateNote('1', { title: 'Edited', content: 'Body' });
+    await updateNote('1', { title: 'Edited', content: 'Body' });
 
-  expect(api.put).toHaveBeenCalledWith('/notes/1', { title: 'Edited', content: 'Body' });
+    expect(api.put).toHaveBeenCalledWith('/notes/1', { title: 'Edited', content: 'Body' });
+  } catch (err) {
+    throw err;
+  }
 });
 
 test('deleteNote requires an id', () => {
@@ -57,9 +73,13 @@ test('deleteNote requires an id', () => {
 });
 
 test('deleteNote calls the delete endpoint', async () => {
-  api.delete.mockResolvedValue({ data: {} });
+  try {
+    api.delete.mockResolvedValue({ data: {} });
 
-  await deleteNote('5');
+    await deleteNote('5');
 
-  expect(api.delete).toHaveBeenCalledWith('/notes/5');
+    expect(api.delete).toHaveBeenCalledWith('/notes/5');
+  } catch (err) {
+    throw err;
+  }
 });

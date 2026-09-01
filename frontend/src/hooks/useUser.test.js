@@ -13,23 +13,31 @@ test('starts with no profile and idle state', () => {
 });
 
 test('loads the profile from the server', async () => {
-  getProfile.mockResolvedValue({ data: { data: { user: { id: '1', name: 'Ali' } } } });
-  const { result } = renderHook(() => useUser());
+  try {
+    getProfile.mockResolvedValue({ data: { data: { user: { id: '1', name: 'Ali' } } } });
+    const { result } = renderHook(() => useUser());
 
-  await act(async () => {
-    await result.current.fetchProfile();
-  });
+    await act(async () => {
+      await result.current.fetchProfile();
+    });
 
-  expect(result.current.profile).toEqual({ id: '1', name: 'Ali' });
+    expect(result.current.profile).toEqual({ id: '1', name: 'Ali' });
+  } catch (err) {
+    throw err;
+  }
 });
 
 test('sets an error when the profile cannot be loaded', async () => {
-  getProfile.mockRejectedValue(new Error('Network'));
-  const { result } = renderHook(() => useUser());
+  try {
+    getProfile.mockRejectedValue(new Error('Network'));
+    const { result } = renderHook(() => useUser());
 
-  await act(async () => {
-    await result.current.fetchProfile();
-  });
+    await act(async () => {
+      await result.current.fetchProfile();
+    });
 
-  expect(result.current.error).toBe('Failed to load profile');
+    expect(result.current.error).toBe('Failed to load profile');
+  } catch (err) {
+    throw err;
+  }
 });

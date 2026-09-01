@@ -7,9 +7,13 @@ jest.mock('./authApi', () => ({
 }));
 
 test('getProfile fetches the current user', async () => {
-  api.get.mockResolvedValue({ data: { data: { user: { id: '1', name: 'Ali' } } } });
+  try {
+    api.get.mockResolvedValue({ data: { data: { user: { id: '1', name: 'Ali' } } } });
 
-  await getProfile();
+    await getProfile();
 
-  expect(api.get).toHaveBeenCalledWith('/users/me');
+    expect(api.get).toHaveBeenCalledWith('/users/me');
+  } catch (err) {
+    throw err;
+  }
 });

@@ -7,18 +7,26 @@ jest.mock('./authApi', () => ({
 }));
 
 test('exportNotes downloads the notes as a blob', async () => {
-  api.get.mockResolvedValue({ data: {} });
+  try {
+    api.get.mockResolvedValue({ data: {} });
 
-  await exportNotes();
+    await exportNotes();
 
-  expect(api.get).toHaveBeenCalledWith('/data/export', { responseType: 'blob' });
+    expect(api.get).toHaveBeenCalledWith('/data/export', { responseType: 'blob' });
+  } catch (err) {
+    throw err;
+  }
 });
 
 test('importNotes posts the notes payload', async () => {
-  api.post.mockResolvedValue({ data: { data: { imported: 1, skipped: 0 } } });
-  const payload = [{ title: 'Note A', content: 'Body' }];
+  try {
+    api.post.mockResolvedValue({ data: { data: { imported: 1, skipped: 0 } } });
+    const payload = [{ title: 'Note A', content: 'Body' }];
 
-  await importNotes(payload);
+    await importNotes(payload);
 
-  expect(api.post).toHaveBeenCalledWith('/data/import', payload);
+    expect(api.post).toHaveBeenCalledWith('/data/import', payload);
+  } catch (err) {
+    throw err;
+  }
 });
