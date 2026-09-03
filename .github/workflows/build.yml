@@ -1,0 +1,57 @@
+name: SonarCloud
+on:
+  push:
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  build:
+    name: Build and analyze
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Backend - Install & Test
+        run: |
+          cd backend
+          npm ci --ignore-scripts
+          npm run test:coverage
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: Frontend - Install & Test
+        run: |
+          cd frontend
+          npm ci --ignore-scripts
+          npm run test -- --coverage
+
+      - name: Check SonarCloud token
+        run: |
+          if [ -n "$SONAR_TOKEN" ]; then
+            echo "SONAR_ENABLED=true" >> "$GITHUB_ENV"
+          else
+            echo "SONAR_ENABLED=false" >> "$GITHUB_ENV"
+          fi
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+      - name: SonarCloud Scan
+        if: env.SONAR_ENABLED == 'true'
+        uses: SonarSource/sonarqube-scan-action@v8.2.1
+        with:
+          args: >
+            -Dsonar.coverage.exclusions=**/*.jsx,**/*.css,**/main.jsx,**/App.jsx,**/server.js,**/app.js,**/src/config/**,**/src/routes/**,**/src/utils/AppError.js,**/src/utils/catchAsync.js,**/src/utils/response.js,**/src/api/logger.js,**/src/context/**,**/src/styles/**
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

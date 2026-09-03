@@ -1,24 +1,43 @@
 import { renderHook, act } from '@testing-library/react';
 import { useUser } from './useUser';
-import { updateProfile } from '../api/userApi';
+import { getProfile } from '../api/userApi';
 
-jest.mock('../api/userApi');
+jest.mock('../api/userApi', () => ({ getProfile: jest.fn() }));
 
-test('useUser initial state matches contract', () => {
+test('starts with no profile and idle state', () => {
   const { result } = renderHook(() => useUser());
+
   expect(result.current.profile).toBeNull();
   expect(result.current.loading).toBe(false);
   expect(result.current.error).toBeNull();
 });
 
-test('editProfile captures error message on rejection', async () => {
-  updateProfile.mockRejectedValue(new Error('Network Error'));
-  const { result } = renderHook(() => useUser());
+test('loads the profile from the server', async () => {
+  try {
+    getProfile.mockResolvedValue({ data: { data: { user: { id: '1', name: 'Ali' } } } });
+    const { result } = renderHook(() => useUser());
 
-  await act(async () => {
-    const success = await result.current.editProfile('Test Name');
-    expect(success).toBe(false);
-  });
+    await act(async () => {
+      await result.current.fetchProfile();
+    });
 
-  expect(result.current.error).toBe('Failed to update profile');
+    expect(result.current.profile).toEqual({ id: '1', name: 'Ali' });
+  } catch (err) {
+    throw err;
+  }
+});
+
+test('sets an error when the profile cannot be loaded', async () => {
+  try {
+    getProfile.mockRejectedValue(new Error('Network'));
+    const { result } = renderHook(() => useUser());
+
+    await act(async () => {
+      await result.current.fetchProfile();
+    });
+
+    expect(result.current.error).toBe('Failed to load profile');
+  } catch (err) {
+    throw err;
+  }
 });

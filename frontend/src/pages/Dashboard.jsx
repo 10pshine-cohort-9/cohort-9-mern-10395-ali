@@ -144,6 +144,7 @@ const Dashboard = () => {
       <div 
         className={`fixed inset-0 z-40 bg-sidebar/50 transition-opacity lg:hidden ${isSidebarOpen ? 'opacity-100' : 'pointer-events-none opacity-0'}`} 
         onClick={closeSidebar}
+        aria-hidden="true"
       />
 
       <aside 

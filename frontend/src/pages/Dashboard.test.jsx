@@ -59,7 +59,7 @@ test('renders dashboard layout elements', () => {
   expect(screen.getByText(/Notes Space/i)).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /Log Out/i })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /View Profile/i })).toBeInTheDocument();
-  expect(screen.getByText(/Import .txt/i)).toBeInTheDocument();
+  expect(screen.getByLabelText(/Import/i)).toBeInTheDocument();
 });
 
 test('renders error alert when fetch fails', () => {

@@ -11,14 +11,3 @@ exports.getProfile = async (userId) => {
   }
 };
 
-exports.updateProfile = async (userId, data) => {
-  try {
-    const { name } = data;
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      throw new AppError('Name cannot be empty or whitespace only', 400);
-    }
-    return await User.update(userId, { name: name.trim() });
-  } catch (err) {
-    throw err;
-  }
-};
