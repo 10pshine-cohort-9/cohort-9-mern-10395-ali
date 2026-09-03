@@ -1,6 +1,6 @@
 # Notes Space — Full-Stack Real-Time Workspace
 
-Notes Space is a production-ready note-taking application designed for speed, security, and seamless synchronization. This project demonstrates a complete MERN-style architecture (Node.js, React, and PostgreSQL) with a focus on high code quality and professional engineering standards.
+Notes Space is a production-ready note-taking application designed for speed, security, and seamless synchronization. This project demonstrates a complete architecture like Node.js, React, and PostgreSQL with a focus on high code quality and engineering standards.
 
 ## Key Features
 
@@ -35,8 +35,7 @@ repository-root/
 │   ├── src/            
 │   └── test/           
 ├── frontend/           
-│   ├── src/           
-│   └── test/           
+│   ├── src/                   
 └── SonarQubeReport/   
 
 ## Local Setup Instructions
